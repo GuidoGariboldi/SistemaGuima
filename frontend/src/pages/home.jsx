@@ -1,15 +1,14 @@
 
-import { useState } from 'react'
-import { Navigation } from '@/components/navigation'
-import { HeroSection } from '@/components/hero-section'
-import { EventsSection } from '@/components/events-section'
-import { TicketsSection } from '@/components/tickets-section'
-import { BarSection } from '@/components/bar-section'
-import { TransportSection } from '@/components/transport-section'
-import { BenefitsSection } from '@/components/benefits-section'
-import { Footer } from '@/components/footer'
-import { AuthModals } from '@/components/auth-modals'
-import { UserProfile } from '@/components/user-profile'
+import { Navigation } from '@/components/layout/navigation'
+import { HeroSection } from '@/components/public/hero-section'
+import { EventsSection } from '@/components/public/events-section'
+import { TicketsSection } from '@/components/public/tickets-section'
+import { BarSection } from '@/components/public/bar-section'
+import { TransportSection } from '@/components/public/transport-section'
+import { BenefitsSection } from '@/components/public/benefits-section'
+import { Footer } from '@/components/layout/footer'
+import { AuthModals } from '@/components/public/auth-modals'
+import { UserProfile } from '@/components/public/user-profile'
 
 export default function TeosHome() {
   const [isLoginOpen, setIsLoginOpen] = useState(false)

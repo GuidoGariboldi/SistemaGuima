@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LockKeyhole, ArrowRight, CreditCard, WalletCards } from 'lucide-react'
-import { CashierDashboard } from '@/components/cashier-dashboard'
-import { AdminDashboard } from '@/components/admin-dashboard'
+import { CashierDashboard } from '@/components/admin/cashier-dashboard'
+import { AdminDashboard } from '@/components/admin/admin-dashboard'
 
 const DEMO_CREDENTIALS = {
   caja: { email: 'caja@teos.com', password: 'teos123' },
