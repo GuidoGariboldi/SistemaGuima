@@ -9,7 +9,7 @@ const routes = [
   {
     id: 1,
     origin: 'Córdoba Capital',
-    destination: 'TEOS Club',
+    destination: 'La Bastarda Club',
     time: '23:00',
     returnTime: '05:00',
     price: '$3.500',
@@ -20,7 +20,7 @@ const routes = [
   {
     id: 2,
     origin: 'Villa María',
-    destination: 'TEOS Club',
+    destination: 'La Bastarda Club',
     time: '22:00',
     returnTime: '05:30',
     price: '$5.000',
@@ -31,7 +31,7 @@ const routes = [
   {
     id: 3,
     origin: 'Río Cuarto',
-    destination: 'TEOS Club',
+    destination: 'La Bastarda Club',
     time: '21:30',
     returnTime: '06:00',
     price: '$6.500',
@@ -42,7 +42,7 @@ const routes = [
   {
     id: 4,
     origin: 'San Francisco',
-    destination: 'TEOS Club',
+    destination: 'La Bastarda Club',
     time: '22:30',
     returnTime: '05:00',
     price: '$4.500',
@@ -53,7 +53,7 @@ const routes = [
   {
     id: 5,
     origin: 'Alta Gracia',
-    destination: 'TEOS Club',
+    destination: 'La Bastarda Club',
     time: '23:30',
     returnTime: '05:00',
     price: '$2.500',
@@ -94,25 +94,37 @@ export function TransportSection() {
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="glass rounded-3xl p-6 h-[500px] relative overflow-hidden"
+            className="glass rounded-3xl p-4 sm:p-6 h-[500px] relative overflow-hidden border border-primary/20 shadow-2xl shadow-primary/10"
           >
             {/* Simulated Map Background */}
-            <div className="absolute inset-0 opacity-30">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-accent/20" />
-              {/* Grid lines to simulate map */}
-              <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <div className="absolute inset-0 opacity-80">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,hsl(var(--primary)/0.16),transparent_32%),linear-gradient(135deg,hsl(var(--primary)/0.1),transparent_45%,hsl(var(--accent)/0.14))]" />
+              <div className="absolute -left-20 top-20 h-56 w-[130%] rotate-[18deg] border-y border-primary/10 bg-primary/[0.03]" />
+              <div className="absolute -right-20 bottom-24 h-40 w-[130%] -rotate-[24deg] border-y border-accent/10 bg-accent/[0.03]" />
+              {/* Neon map surface */}
+              <svg className="h-full w-full" viewBox="0 0 800 500" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-label="Mapa estilizado de rutas hacia La Bastarda Club">
                 <defs>
-                  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" strokeWidth="0.5" className="text-primary/20" />
-                  </pattern>
+                  <pattern id="map-grid" width="42" height="42" patternUnits="userSpaceOnUse"><path d="M 42 0 L 0 0 0 42" fill="none" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1" /></pattern>
                 </defs>
-                <rect width="100%" height="100%" fill="url(#grid)" />
+                <rect width="800" height="500" fill="url(#map-grid)" />
+                <path d="M-40 130 C140 80 190 210 340 180 S560 75 840 115" fill="none" stroke="hsl(var(--primary) / 0.16)" strokeWidth="18" />
+                <path d="M-40 130 C140 80 190 210 340 180 S560 75 840 115" fill="none" stroke="hsl(var(--primary) / 0.28)" strokeWidth="2" />
+                <path d="M80 -30 C140 120 280 160 300 260 S470 390 560 540" fill="none" stroke="hsl(var(--accent) / 0.18)" strokeWidth="15" />
+                <path d="M80 -30 C140 120 280 160 300 260 S470 390 560 540" fill="none" stroke="hsl(var(--accent) / 0.35)" strokeWidth="2" />
+                <path d="M-20 410 C160 330 240 390 390 330 S610 280 840 350" fill="none" stroke="hsl(var(--primary) / 0.14)" strokeWidth="10" />
+                <path d="M-20 410 C160 330 240 390 390 330 S610 280 840 350" fill="none" stroke="hsl(var(--primary) / 0.3)" strokeWidth="1.5" />
+                <circle cx="400" cy="250" r="82" fill="hsl(var(--primary) / 0.05)" stroke="hsl(var(--primary) / 0.18)" strokeDasharray="3 8" />
+                <circle cx="400" cy="250" r="54" fill="none" stroke="hsl(var(--primary) / 0.18)" strokeDasharray="2 7" />
               </svg>
             </div>
 
+            <div className="absolute left-5 top-5 z-20 rounded-2xl border border-white/10 bg-background/70 px-4 py-3 backdrop-blur-md"><p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary">Mapa de traslado</p><p className="mt-1 text-xs text-muted-foreground">Rutas nocturnas hacia La Bastarda Club</p></div><div className="absolute right-5 top-5 z-20 flex flex-col overflow-hidden rounded-xl border border-white/10 bg-background/75 shadow-xl backdrop-blur-md"><button type="button" aria-label="Acercar mapa" className="px-3 py-2 text-lg text-muted-foreground transition hover:bg-primary/20 hover:text-primary">+</button><div className="h-px bg-white/10"/><button type="button" aria-label="Alejar mapa" className="px-3 py-2 text-lg text-muted-foreground transition hover:bg-primary/20 hover:text-primary">−</button></div>
+
+            <div className="absolute bottom-5 left-5 z-20 flex items-center gap-3 rounded-full border border-white/10 bg-background/70 px-4 py-2 text-[10px] text-muted-foreground backdrop-blur-md"><span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary))]" />La Bastarda Club</span><span className="flex items-center gap-1.5"><span className="size-2 rounded-full border border-primary bg-transparent" />Puntos de salida</span></div>
+
             {/* Map Points */}
             <div className="relative h-full">
-              {/* TEOS Location (Center) */}
+              {/* La Bastarda Location (Center) */}
               <motion.div
                 initial={{ scale: 0 }}
                 whileInView={{ scale: 1 }}
@@ -120,12 +132,7 @@ export function TransportSection() {
                 transition={{ delay: 0.3 }}
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
               >
-                <div className="relative">
-                  <div className="w-16 h-16 rounded-full bg-primary/30 animate-ping absolute inset-0" />
-                  <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center neon-glow relative">
-                    <span className="text-xs font-bold text-primary-foreground">TEOS</span>
-                  </div>
-                </div>
+                <div className="relative"><div className="absolute inset-0 h-16 w-16 rounded-full bg-primary/30 animate-ping" /><div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-primary neon-glow"><span className="text-[10px] font-bold tracking-widest text-primary-foreground">La Bastarda</span></div></div>
               </motion.div>
 
               {/* Route points */}
@@ -150,7 +157,7 @@ export function TransportSection() {
                     }`}
                     onClick={() => setSelectedRoute(route.id)}
                   >
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center border border-primary/30 shadow-lg shadow-background/40 transition-all ${
                       selectedRoute === route.id
                         ? 'bg-primary scale-125 neon-glow'
                         : 'glass hover:bg-primary/50'
@@ -185,7 +192,7 @@ export function TransportSection() {
                       y1={positions[index].y}
                       x2="50%"
                       y2="50%"
-                      stroke={selectedRoute === route.id ? '#a855f7' : '#ffffff'}
+                      stroke={selectedRoute === route.id ? '#ef4444' : '#ffffff'}
                       strokeWidth="2"
                       strokeDasharray="5,5"
                     />

@@ -1,23 +1,42 @@
 import { Routes, Route } from "react-router-dom";
-import TeosHome from "./pages/home";
-import TeosAdmin from "./pages/admin";
-import TeosCaja from "./pages/caja";
-import TeosCarga from "./pages/carga";
-import TeosEscanear from "./pages/escanear";
-import TeosLoginAdmin from "./pages/loginAdmin";
-import TeosLoginCaja from "./pages/loginCaja";
+import { Toaster } from "sileo";
+import Home from "./pages/home";
+import Info from "./pages/info";
+import Admin from "./pages/admin";
+import Caja from "./pages/caja";
+import Carga from "./pages/carga";
+import Escanear from "./pages/escanear";
+import LoginAdmin from "./pages/loginAdmin";
+import LoginCaja from "./pages/loginCaja";
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<TeosHome />} />
-      <Route path="/admin" element={<TeosAdmin />} />
-      <Route path="/caja" element={<TeosCaja />} />
-      <Route path="/carga" element={<TeosCarga />} />
-      <Route path="/escaneartarjeta" element={<TeosEscanear />} />
-      <Route path="/loginadmin" element={<TeosLoginAdmin />} />
-      <Route path="/logincaja" element={<TeosLoginCaja />} />
-    </Routes>
+    <>
+      <Toaster
+        position="top-right"
+        theme="dark"
+        offset={{ top: 80, right: 16 }}
+        options={{
+          fill: "#171717",
+          styles: {
+            title: "text-white!",
+            description: "text-white/75!",
+            badge: "bg-white/10!",
+            button: "bg-white/10!",
+          },
+        }}
+      />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/info" element={<Info />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/caja" element={<Caja />} />
+        <Route path="/carga" element={<Carga />} />
+        <Route path="/escaneartarjeta" element={<Escanear />} />
+        <Route path="/loginadmin" element={<LoginAdmin />} />
+        <Route path="/logincaja" element={<LoginCaja />} />
+      </Routes>
+    </>
   );
 }
 

@@ -39,7 +39,7 @@ export function CardScannerTerminal() {
 
           <div className="relative z-10 mt-12 max-w-xl text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">{status === 'reading' ? 'Leyendo tarjeta' : 'Paso 1 de 2'}</p>
-            <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">{status === 'reading' ? 'No retires tu tarjeta' : 'Acercá tu TEOS Card'}</h1>
+            <h1 className="mt-4 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">{status === 'reading' ? 'No retires tu tarjeta' : 'Acercá tu La Bastarda Card'}</h1>
             <p className="mx-auto mt-4 max-w-md text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">{status === 'reading' ? 'Estamos verificando tu tarjeta de forma segura. Esto puede tardar unos segundos.' : 'Apoyala sobre el lector y mantenela quieta hasta que la terminal la reconozca.'}</p>
           </div>
 
@@ -60,31 +60,31 @@ export function CardScannerTerminal() {
 function SuccessState({ onContinue, onReset, accountState, setAccountState, email, setEmail, password, setPassword }: { onContinue: () => void; onReset: () => void; accountState: AccountState; setAccountState: (state: AccountState) => void; email: string; setEmail: (value: string) => void; password: string; setPassword: (value: string) => void }) {
   const cardData = {
     holder: 'MARTÍN GÓMEZ',
-    number: 'TEOS •••• 4821',
+    number: 'La Bastarda •••• 4821',
     level: 'Gold Member',
     balance: '$ 24.850',
     points: '1.240 puntos',
   }
 
   return <div className="relative z-10 flex w-full max-w-3xl flex-col items-center text-center">
-    <div className="flex size-20 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-400/10 text-emerald-400 shadow-[0_0_45px_rgba(52,211,153,0.2)]"><Check size={40} /></div>
-    <p className="mt-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-400"><Sparkles size={15} /> Tarjeta reconocida</p>
+    <div className="flex size-20 items-center justify-center rounded-full border border-red-400/30 bg-red-400/10 text-red-400 shadow-[0_0_45px_rgba(52,211,153,0.2)]"><Check size={40} /></div>
+    <p className="mt-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-red-400"><Sparkles size={15} /> Tarjeta reconocida</p>
     <h1 className="mt-3 text-balance text-4xl font-semibold tracking-tight sm:text-5xl">Tarjeta lista</h1>
     <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">Podés continuar para cargar saldo.</p>
 
     <aside className="mt-8 w-full max-w-md rounded-[2rem] border border-primary/30 bg-card/95 p-4 text-left shadow-2xl shadow-primary/15">
       <div className="mb-3 flex items-center justify-between border-b border-border/60 pb-3">
         <div><p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">Datos de tu tarjeta</p><p className="mt-1 text-xs text-muted-foreground">Información verificada</p></div>
-        <span className="flex items-center gap-1.5 rounded-full bg-emerald-400/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-400"><span className="size-1.5 rounded-full bg-emerald-400" /> Activa</span>
+        <span className="flex items-center gap-1.5 rounded-full bg-red-400/10 px-2.5 py-1 text-[10px] font-semibold text-red-400"><span className="size-1.5 rounded-full bg-red-400" /> Activa</span>
       </div>
       <div className="relative mb-4 min-h-40 overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/80 via-primary/35 to-background p-4 text-primary-foreground shadow-lg">
         <div className="absolute -right-10 -top-16 size-32 rounded-full border border-primary-foreground/20" />
         <div className="relative flex h-full min-h-32 flex-col justify-between">
-          <div className="flex items-start justify-between"><span className="text-xs font-bold tracking-[0.25em]">TEOS</span><CreditCard size={19} className="opacity-80" /></div>
+          <div className="flex items-start justify-between"><span className="text-xs font-bold tracking-[0.25em]">La Bastarda</span><CreditCard size={19} className="opacity-80" /></div>
           <div><p className="text-sm font-semibold tracking-[0.16em]">{cardData.number}</p><div className="mt-3 flex items-end justify-between gap-2"><div><p className="text-[8px] uppercase tracking-[0.2em] opacity-70">Titular</p><p className="mt-1 text-[10px] font-medium tracking-wider">{cardData.holder}</p></div><p className="text-[10px] font-semibold uppercase">{cardData.level}</p></div></div>
         </div>
       </div>
-      <div className="flex flex-col gap-3"><DataRow label="Saldo disponible" value={cardData.balance} accent /><DataRow label="Nivel" value={cardData.level} /><DataRow label="Puntos TEOS" value={cardData.points} /></div>
+      <div className="flex flex-col gap-3"><DataRow label="Saldo disponible" value={cardData.balance} accent /><DataRow label="Nivel" value={cardData.level} /><DataRow label="Puntos La Bastarda" value={cardData.points} /></div>
     </aside>
 
     {accountState === 'idle' && <div className="mt-5 flex w-full max-w-md flex-col gap-3 sm:flex-row">
@@ -95,7 +95,7 @@ function SuccessState({ onContinue, onReset, accountState, setAccountState, emai
     {accountState === 'idle' && <button onClick={() => setAccountState('login')} className="mt-3 flex min-h-14 w-full max-w-md items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-primary/10 px-6 py-4 text-sm font-semibold text-primary transition hover:bg-primary/15 active:scale-[0.98]"><UserRound size={18} /> Vincular Cuenta</button>}
 
     {accountState === 'login' && <div className="mt-5 w-full max-w-md rounded-[2rem] border border-border bg-card/95 p-5 text-left shadow-2xl">
-      <div className="mb-5"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Vincular cuenta</p><h2 className="mt-2 text-xl font-semibold">Iniciá sesión para continuar</h2><p className="mt-1 text-sm text-muted-foreground">Usá la cuenta asociada a tu TEOS Card.</p></div>
+      <div className="mb-5"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Vincular cuenta</p><h2 className="mt-2 text-xl font-semibold">Iniciá sesión para continuar</h2><p className="mt-1 text-sm text-muted-foreground">Usá la cuenta asociada a tu La Bastarda Card.</p></div>
       <label className="block text-xs font-medium text-muted-foreground">Correo electrónico</label>
       <div className="mt-2 flex items-center gap-2 rounded-xl border border-border bg-background px-3"><Mail size={16} className="text-primary" /><input value={email} onChange={(event) => setEmail(event.target.value)} type="email" placeholder="tu@email.com" className="min-h-12 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/60" /></div>
       <label className="mt-4 block text-xs font-medium text-muted-foreground">Contraseña</label>
@@ -105,13 +105,13 @@ function SuccessState({ onContinue, onReset, accountState, setAccountState, emai
 
     {accountState === 'confirm' && <div className="mt-5 w-full max-w-md rounded-[2rem] border border-primary/30 bg-card/95 p-6 shadow-2xl shadow-primary/10"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Cuenta encontrada</p><h2 className="mt-2 text-2xl font-semibold">¿Sos vos esta persona?</h2><div className="mt-5 flex items-center gap-4 rounded-2xl border border-border bg-background/70 p-4 text-left"><div className="size-16 overflow-hidden rounded-full border-2 border-primary/40 bg-primary/20"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&q=80" alt="Foto de perfil de Martín Gómez" className="size-full object-cover" /></div><div><p className="font-semibold">Martín Gómez</p><p className="mt-1 text-sm text-muted-foreground">{email}</p></div></div><div className="mt-5 flex gap-3"><button onClick={() => setAccountState('login')} className="min-h-12 flex-1 rounded-xl border border-border px-4 text-sm text-muted-foreground hover:text-foreground">No soy yo</button><button onClick={() => setAccountState('linked')} className="min-h-12 flex-1 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground">Sí, soy yo</button></div></div>}
 
-    {accountState === 'linked' && <div className="mt-5 w-full max-w-md rounded-[2rem] border border-emerald-400/30 bg-emerald-400/10 p-5 text-center"><Check className="mx-auto text-emerald-400" size={28} /><p className="mt-2 font-semibold text-emerald-300">Cuenta vinculada correctamente</p><p className="mt-1 text-sm text-muted-foreground">Ya podés continuar con tu carga de saldo.</p><button onClick={onContinue} className="mt-4 min-h-12 w-full rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground">Continuar a cargar saldo</button></div>}
+    {accountState === 'linked' && <div className="mt-5 w-full max-w-md rounded-[2rem] border border-red-400/30 bg-red-400/10 p-5 text-center"><Check className="mx-auto text-red-400" size={28} /><p className="mt-2 font-semibold text-red-300">Cuenta vinculada correctamente</p><p className="mt-1 text-sm text-muted-foreground">Ya podés continuar con tu carga de saldo.</p><button onClick={onContinue} className="mt-4 min-h-12 w-full rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground">Continuar a cargar saldo</button></div>}
   </div>
 }
 
 function DataRow({ label, value, accent, status }: { label: string; value: string; accent?: boolean; status?: boolean }) {
   return <div className="flex items-center justify-between gap-4 border-b border-border/60 pb-3 last:border-0 last:pb-0">
     <span className="text-xs text-muted-foreground">{label}</span>
-    <span className={`text-right text-sm font-semibold ${accent ? 'text-lg text-primary' : status ? 'text-emerald-400' : 'text-foreground'}`}>{value}</span>
+    <span className={`text-right text-sm font-semibold ${accent ? 'text-lg text-primary' : status ? 'text-red-400' : 'text-foreground'}`}>{value}</span>
   </div>
 }

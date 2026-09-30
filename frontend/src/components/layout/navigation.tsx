@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Menu, X, User, Ticket, Calendar, Wine, Bus, Gift, CreditCard } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const navLinks = [
@@ -11,16 +11,19 @@ const navLinks = [
   { name: 'Eventos', href: '#eventos' },
   { name: 'Entradas', href: '#entradas' },
   { name: 'Barra', href: '#barra' },
-  { name: 'Traslado', href: '#traslado' },
-  { name: 'Beneficios', href: '#beneficios' },
+  { name: 'Mesas', href: '#mesas' },
+  { name: 'Info', href: '/info' },
 ]
 
 interface NavigationProps {
   onLogin: () => void
   onRegister: () => void
+  isAuthenticated: boolean
+  onProfile: () => void
+  onLogout: () => void
 }
 
-export function Navigation({ onLogin, onRegister }: NavigationProps) {
+export function Navigation({ onLogin, onRegister, isAuthenticated, onProfile, onLogout }: NavigationProps) {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -42,22 +45,19 @@ export function Navigation({ onLogin, onRegister }: NavigationProps) {
           isScrolled ? 'glass-dark py-3' : 'bg-transparent py-5'
         }`}
       >
-        <div className="container mx-auto px-4 flex items-center justify-between">
+        <div className="container mx-auto flex min-w-0 items-center justify-between gap-3 px-4">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="relative"
-            >
-              <span className="text-3xl font-bold tracking-wider gradient-text">
-                TEOS
-              </span>
-              <div className="absolute -inset-2 bg-primary/20 blur-xl rounded-full -z-10" />
+          <Link to="/" className="order-1 min-w-0 flex items-center gap-1.5">
+            <motion.div whileHover={{ scale: 1.05 }} className="relative">
+              <span className="truncate text-xl font-bold tracking-wider gradient-text sm:text-3xl">La Bastarda</span>
+              <div className="absolute -inset-2 rounded-full bg-primary/20 blur-xl -z-10" />
             </motion.div>
+            <span aria-hidden="true" className="px-0.5 text-base font-semibold text-primary sm:px-1 sm:text-xl">X</span>
+            <img src="/la-bastarda-logo.png" alt="Logo de La Bastarda" className="size-8 shrink-0 rounded-full border border-primary/50 object-cover shadow-[0_0_18px_hsl(var(--primary)/0.35)]" />
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-8">
+          <nav className="order-2 hidden items-center gap-8 lg:flex">
             {navLinks.map((link) => (
               <motion.a
                 key={link.name}
@@ -72,19 +72,17 @@ export function Navigation({ onLogin, onRegister }: NavigationProps) {
           </nav>
 
           {/* Desktop Auth Buttons */}
-          <div className="hidden lg:flex items-center gap-4">
-            <Button type="button" variant="ghost" onClick={onLogin} className="text-foreground/80 hover:text-foreground hover:bg-white/5">
-              Iniciar Sesión
-            </Button>
-            <Button type="button" onClick={onRegister} className="bg-primary hover:bg-primary/90 text-primary-foreground neon-glow">
-              Registrarse
-            </Button>
+          <div className="order-3 hidden items-center gap-4 lg:flex">
+            {isAuthenticated ? <>
+              <button type="button" onClick={onProfile} className="flex items-center gap-2 rounded-full border border-primary/30 px-3 py-1.5 transition hover:bg-primary/10"><span className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">JP</span><span className="text-sm font-medium">Juan Pérez</span></button>
+              <Button type="button" variant="ghost" onClick={onLogout} className="text-foreground/70">Cerrar sesión</Button>
+            </> : <><Button type="button" variant="ghost" onClick={onLogin} className="text-foreground/80 hover:text-foreground hover:bg-white/5">Iniciar Sesión</Button><Button type="button" onClick={onRegister} className="bg-primary hover:bg-primary/90 text-primary-foreground neon-glow">Registrarse</Button></>}
           </div>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden p-2 text-foreground"
+            className="order-4 p-2 text-foreground lg:hidden"
             aria-label={isMobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -117,14 +115,7 @@ export function Navigation({ onLogin, onRegister }: NavigationProps) {
                     {link.name}
                   </motion.a>
                 ))}
-                <div className="flex flex-col gap-4 mt-8">
-                  <Button type="button" variant="outline" size="lg" onClick={() => { setIsMobileMenuOpen(false); onLogin() }} className="w-48 border-primary/50 text-foreground">
-                    Iniciar Sesión
-                  </Button>
-                  <Button type="button" size="lg" onClick={() => { setIsMobileMenuOpen(false); onRegister() }} className="w-48 bg-primary hover:bg-primary/90 neon-glow">
-                    Registrarse
-                  </Button>
-                </div>
+                <div className="mt-8 flex flex-col items-center gap-4">{isAuthenticated ? <><button type="button" onClick={() => { setIsMobileMenuOpen(false); onProfile() }} className="flex items-center gap-3 rounded-full border border-primary/30 px-4 py-2"><span className="flex size-9 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground">JP</span>Juan Pérez</button><Button type="button" variant="outline" size="lg" onClick={() => { setIsMobileMenuOpen(false); onLogout() }} className="w-48 border-primary/50">Cerrar sesión</Button></> : <><Button type="button" variant="outline" size="lg" onClick={() => { setIsMobileMenuOpen(false); onLogin() }} className="w-48 border-primary/50 text-foreground">Iniciar Sesión</Button><Button type="button" size="lg" onClick={() => { setIsMobileMenuOpen(false); onRegister() }} className="w-48 bg-primary hover:bg-primary/90 neon-glow">Registrarse</Button></>}</div>
               </div>
             </div>
           </motion.div>

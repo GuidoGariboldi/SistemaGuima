@@ -13,7 +13,8 @@ const events = [
     date: '15 Dic 2024',
     time: '23:00',
     price: '$8.000',
-    category: 'Techno',
+    category: 'La Bastarda',
+    age: '+23',
     image: 'https://images.unsplash.com/photo-1574391884720-bbc3740c59d1?w=600&q=80',
     featured: true,
   },
@@ -24,7 +25,8 @@ const events = [
     date: '22 Dic 2024',
     time: '00:00',
     price: '$6.000',
-    category: 'House',
+    category: 'Guanaco',
+    age: '+18',
     image: 'https://images.unsplash.com/photo-1571266028243-3716f02d2d2e?w=600&q=80',
     featured: false,
   },
@@ -35,7 +37,8 @@ const events = [
     date: '31 Dic 2024',
     time: '23:30',
     price: '$15.000',
-    category: 'Trance',
+    category: 'La Bastarda',
+    age: '+23',
     image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80',
     featured: true,
   },
@@ -46,7 +49,8 @@ const events = [
     date: '05 Ene 2025',
     time: '00:00',
     price: '$7.000',
-    category: 'Bass',
+    category: 'Guanaco',
+    age: '+18',
     image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80',
     featured: false,
   },
@@ -57,7 +61,8 @@ const events = [
     date: '12 Ene 2025',
     time: '01:00',
     price: '$9.000',
-    category: 'Techno',
+    category: 'La Bastarda',
+    age: '+23',
     image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600&q=80',
     featured: false,
   },
@@ -68,13 +73,14 @@ const events = [
     date: '19 Ene 2025',
     time: '23:00',
     price: '$8.500',
-    category: 'Progressive',
+    category: 'Guanaco',
+    age: '+18',
     image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&q=80',
     featured: true,
   },
 ]
 
-const categories = ['Todos', 'Techno', 'House', 'Trance', 'Bass', 'Progressive']
+const categories = ['Todos', 'La Bastarda', 'Guanaco']
 
 export function EventsSection() {
   const [activeCategory, setActiveCategory] = useState('Todos')
@@ -92,12 +98,12 @@ export function EventsSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="mb-10 text-center sm:mb-16"
         >
           <span className="inline-block px-4 py-2 rounded-full glass text-sm font-medium text-primary border border-primary/30 mb-4">
             Próximos Eventos
           </span>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+          <h2 className="text-3xl font-bold leading-tight sm:text-4xl md:text-5xl mb-4">
             <span className="gradient-text">Eventos</span> que no te podés perder
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -110,14 +116,14 @@ export function EventsSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="flex flex-wrap items-center justify-center gap-3 mb-12"
+          className="mb-8 flex flex-wrap items-center justify-center gap-2 sm:mb-12 sm:gap-3"
         >
           <Filter className="h-5 w-5 text-muted-foreground mr-2" />
           {categories.map((category) => (
             <button
               key={category}
               onClick={() => setActiveCategory(category)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              className={`px-3 py-2 rounded-full text-xs font-medium transition-all sm:px-4 sm:text-sm ${
                 activeCategory === category
                   ? 'bg-primary text-primary-foreground neon-glow'
                   : 'glass text-foreground/80 hover:bg-white/10'
@@ -153,12 +159,12 @@ export function EventsSection() {
                   </span>
                 )}
                 <span className="absolute top-4 left-4 px-3 py-1 glass text-xs font-medium rounded-full">
-                  {event.category}
+                  {event.category} · {event.age}
                 </span>
               </div>
 
               {/* Content */}
-              <div className="p-6">
+              <div className="p-5 text-center sm:p-6">
                 <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">
                   {event.name}
                 </h3>
@@ -178,12 +184,7 @@ export function EventsSection() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold gradient-text">{event.price}</span>
-                  <Button className="bg-primary hover:bg-primary/90 text-sm">
-                    Comprar Entrada
-                  </Button>
-                </div>
+                <div className="mt-2 text-sm font-medium text-primary">Entrada General disponible</div>
               </div>
             </motion.div>
           ))}

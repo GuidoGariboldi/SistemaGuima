@@ -5,9 +5,8 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { 
   User, Mail, Calendar, Settings, History, Ticket, 
-  Crown, Edit3, Camera, ChevronRight, X 
+  Crown, Edit3, Camera, ChevronRight, X, Eye, EyeOff, Menu 
 } from 'lucide-react'
-import { TarjetaCard } from './tarjeta-card'
 
 interface UserProfileProps {
   isOpen: boolean
@@ -20,7 +19,7 @@ const userData = {
   email: 'juan.perez@email.com',
   birthDate: '15/03/1995',
   memberSince: 'Marzo 2024',
-  memberNumber: 'TEOS-2024-0847',
+  memberNumber: 'La Bastarda-2024-0847',
   membershipLevel: 'VIP',
   points: 2450,
   eventsAttended: 12,
@@ -35,7 +34,14 @@ const purchaseHistory = [
 
 export function UserProfile({ isOpen, onClose }: UserProfileProps) {
   const [activeTab, setActiveTab] = useState('profile')
+  const [showMobileMenu, setShowMobileMenu] = useState(true)
   const [showTeosCard, setShowTeosCard] = useState(false)
+  const [cardLinked, setCardLinked] = useState(false)
+  const [showCardForm, setShowCardForm] = useState(false)
+  const [hideCardNumber, setHideCardNumber] = useState(true)
+  const [hideBalance, setHideBalance] = useState(true)
+  const [isEditing, setIsEditing] = useState(false)
+  const [profileName, setProfileName] = useState(`${userData.name} ${userData.lastName}`)
 
   if (!isOpen) return null
 
@@ -44,7 +50,7 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/85 p-2 backdrop-blur-md sm:p-4"
       onClick={onClose}
     >
       <motion.div
@@ -52,7 +58,7 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-4xl glass rounded-3xl overflow-hidden max-h-[90vh]"
+        className="relative flex max-h-[94dvh] w-full max-w-4xl flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-[#120d0e]/95 shadow-2xl shadow-red-950/40 glass md:flex-row"
       >
         <button
           onClick={onClose}
@@ -62,23 +68,23 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
           <X className="h-5 w-5" />
         </button>
 
-        <div className="flex flex-col md:flex-row h-full">
+        <div className="flex min-h-0 flex-1 flex-col md:flex-row">
           {/* Sidebar */}
-          <div className="md:w-72 p-6 border-b md:border-b-0 md:border-r border-white/10">
+          <div className={`${showMobileMenu ? 'flex' : 'hidden'} shrink-0 flex-col border-b border-white/10 bg-gradient-to-b from-red-950/25 to-transparent p-4 md:flex md:w-72 md:border-b-0 md:border-r md:p-6`}>
             {/* User Avatar */}
             <div className="text-center mb-6">
               <div className="relative inline-block">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-3xl font-bold">
+                <div className="flex size-24 items-center justify-center rounded-full bg-gradient-to-br from-[#ff655f] via-[#e98763] to-[#8bb34c] text-3xl font-bold shadow-lg shadow-red-500/20 ring-4 ring-white/10">
                   {userData.name[0]}{userData.lastName[0]}
                 </div>
                 <button className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
                   <Camera className="h-4 w-4" />
                 </button>
               </div>
-              <h3 className="text-xl font-bold mt-4">{userData.name} {userData.lastName}</h3>
+              <h3 className="mt-4 text-xl font-bold">{profileName}</h3>
               <div className="flex items-center justify-center gap-2 mt-2">
-                <Crown className="h-4 w-4 text-primary" />
-                <span className="text-sm text-primary font-medium">Miembro {userData.membershipLevel}</span>
+<span className="size-2 rounded-full bg-primary" />
+                        <span className="text-sm text-primary font-medium">Cliente La Bastarda</span>
               </div>
             </div>
 
@@ -86,7 +92,7 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
             <nav className="space-y-2">
               {[
                 { id: 'profile', label: 'Mi Perfil', icon: User },
-                { id: 'card', label: 'Tarjeta TEOS', icon: Crown },
+                { id: 'card', label: 'Tarjeta La Bastarda', icon: Crown },
                 { id: 'history', label: 'Historial', icon: History },
                 { id: 'tickets', label: 'Mis Entradas', icon: Ticket },
                 { id: 'settings', label: 'Configuración', icon: Settings },
@@ -97,9 +103,10 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                     key={item.id}
                     onClick={() => {
                       setActiveTab(item.id)
+                      setShowMobileMenu(false)
                       if (item.id === 'card') setShowTeosCard(true)
                     }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                    className={`min-h-14 w-full flex items-center gap-3 rounded-2xl px-4 py-3 transition-all touch-manipulation active:scale-[0.98] ${
                       activeTab === item.id
                         ? 'bg-primary/20 text-primary'
                         : 'hover:bg-white/5 text-foreground/70'
@@ -115,15 +122,13 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
           </div>
 
           {/* Content */}
-          <div className="flex-1 p-6 overflow-y-auto">
+          <div className={`${showMobileMenu ? 'hidden' : 'flex'} min-h-0 flex-1 flex-col overflow-y-auto bg-gradient-to-b from-red-950/10 to-transparent p-4 sm:p-6 md:flex`}>
+            <button type="button" onClick={() => setShowMobileMenu(true)} className="mb-5 flex min-h-11 w-full items-center justify-between rounded-xl border border-primary/30 bg-primary/10 px-4 text-left font-semibold text-primary md:hidden"><span>Menú de perfil</span><Menu className="size-5" /></button>
             {activeTab === 'profile' && (
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold">Mi Perfil</h2>
-                  <Button variant="outline" size="sm" className="border-primary/50">
-                    <Edit3 className="h-4 w-4 mr-2" />
-                    Editar
-                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => setIsEditing(!isEditing)} className="border-primary/50"><Edit3 className="mr-2 h-4 w-4" />{isEditing ? 'Guardar' : 'Editar'}</Button>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">
@@ -133,7 +138,7 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                         <User className="h-5 w-5 text-primary" />
                         <span className="text-sm text-muted-foreground">Nombre completo</span>
                       </div>
-                      <p className="font-medium">{userData.name} {userData.lastName}</p>
+                      {isEditing ? <input value={profileName} onChange={(event) => setProfileName(event.target.value)} className="w-full rounded-lg border border-primary/40 bg-background/40 px-3 py-2 font-medium" aria-label="Nombre completo" /> : <p className="font-medium">{profileName}</p>}
                     </div>
 
                     <div className="glass rounded-xl p-4">
@@ -154,14 +159,6 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                   </div>
 
                   <div className="space-y-4">
-                    <div className="glass rounded-xl p-4">
-                      <div className="flex items-center gap-3 mb-2">
-                        <Crown className="h-5 w-5 text-primary" />
-                        <span className="text-sm text-muted-foreground">Número de socio</span>
-                      </div>
-                      <p className="font-medium font-mono">{userData.memberNumber}</p>
-                    </div>
-
                     <div className="glass rounded-xl p-4">
                       <span className="text-sm text-muted-foreground">Miembro desde</span>
                       <p className="font-medium">{userData.memberSince}</p>
@@ -186,8 +183,8 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
 
             {activeTab === 'card' && (
               <div>
-                <h2 className="text-2xl font-bold mb-6">Tu Tarjeta TEOS</h2>
-                <TarjetaCard userData={userData} />
+                <h2 className="mb-2 text-2xl font-bold">Tu Tarjeta La Bastarda</h2><p className="mb-6 text-sm text-muted-foreground">Una única tarjeta para identificarte y consultar tu saldo.</p>
+                {!cardLinked ? <div className="glass rounded-2xl p-6"><div className="mb-5 flex items-center gap-3"><div className="flex size-12 items-center justify-center rounded-xl bg-primary/15 text-primary"><Crown className="size-6" /></div><div><h3 className="font-bold">Vinculá tu tarjeta</h3><p className="text-sm text-muted-foreground">Completá estos pasos para asociarla.</p></div></div><ol className="mb-6 space-y-3 text-sm text-muted-foreground"><li>1. Tené a mano tu tarjeta física.</li><li>2. Ingresá el número de tarjeta y el email de tu cuenta.</li><li>3. Confirmá la vinculación para ver tu saldo.</li></ol><Button onClick={() => setShowCardForm(true)} className="w-full bg-primary">Vincular Tarjeta</Button>{showCardForm && <form onSubmit={(event) => { event.preventDefault(); setCardLinked(true); setShowCardForm(false) }} className="mt-5 space-y-3 border-t border-border pt-5"><input required name="cardNumber" inputMode="numeric" placeholder="Número de tarjeta" className="w-full rounded-xl border border-border bg-secondary/50 px-4 py-3" /><input required name="email" type="email" placeholder="Correo de tu cuenta" className="w-full rounded-xl border border-border bg-secondary/50 px-4 py-3" /><Button type="submit" className="w-full bg-primary">Confirmar vinculación</Button></form>}</div> : <div className="glass rounded-2xl p-6"><div className="mb-6 flex items-center justify-between"><div><p className="text-xs uppercase tracking-widest text-primary">Tarjeta vinculada</p><p className="mt-2 font-mono text-lg">{hideCardNumber ? '•••• •••• •••• 0847' : '5424 4532 8912 0847'}</p></div><Button variant="outline" size="sm" onClick={() => setHideCardNumber(!hideCardNumber)}>{hideCardNumber ? 'Mostrar' : 'Ocultar'}</Button></div><div className="rounded-xl bg-primary/10 p-4"><div className="flex items-center justify-between gap-3"><p className="text-sm text-muted-foreground">Saldo disponible</p><button type="button" onClick={() => setHideBalance(!hideBalance)} aria-label={hideBalance ? 'Mostrar saldo' : 'Ocultar saldo'} aria-pressed={!hideBalance} className="rounded-full p-2 text-primary transition hover:bg-primary/15">{hideBalance ? <Eye className="size-5" /> : <EyeOff className="size-5" />}</button></div><p className="mt-1 text-3xl font-bold tracking-wider text-primary">{hideBalance ? '••••••' : '$48.500'}</p></div></div>}
               </div>
             )}
 

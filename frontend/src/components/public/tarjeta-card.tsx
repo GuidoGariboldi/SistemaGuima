@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { Crown, QrCode, Sparkles } from 'lucide-react'
 
-interface TarjetaCardProps {
+interface TeosCardProps {
   userData: {
     name: string
     lastName: string
@@ -15,7 +15,7 @@ interface TarjetaCardProps {
   }
 }
 
-export function TarjetaCard({ userData }: TarjetaCardProps) {
+export function TarjetaCard({ userData }: TeosCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   
   const x = useMotionValue(0)
@@ -50,7 +50,7 @@ export function TarjetaCard({ userData }: TarjetaCardProps) {
 
   const levelColors = {
     'General': 'from-blue-600 to-cyan-600',
-    'VIP': 'from-purple-600 via-pink-600 to-purple-600',
+    'VIP': 'from-red-600 via-rose-500 to-red-900',
     'Premium': 'from-amber-600 via-yellow-500 to-amber-600',
   }
 
@@ -103,7 +103,7 @@ export function TarjetaCard({ userData }: TarjetaCardProps) {
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-3xl font-bold tracking-wider gradient-text">TEOS</span>
+                    <span className="text-3xl font-bold tracking-wider gradient-text">La Bastarda</span>
                     <Sparkles className="h-5 w-5 text-primary animate-pulse" />
                   </div>
                   <span className="text-xs text-muted-foreground uppercase tracking-widest">
@@ -184,7 +184,7 @@ export function TarjetaCard({ userData }: TarjetaCardProps) {
         <h3 className="text-xl font-bold mb-2">Tu Tarjeta Digital</h3>
         <p className="text-sm text-muted-foreground">
           Presentá el código QR en la entrada para acceder a beneficios exclusivos, 
-          acumular puntos y disfrutar de la experiencia TEOS.
+          acumular puntos y disfrutar de la experiencia La Bastarda.
         </p>
       </div>
 

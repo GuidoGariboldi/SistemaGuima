@@ -41,7 +41,7 @@ export function HeroSection() {
       <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-accent/10 blur-[150px] rounded-full" />
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 text-center">
+      <div className="relative z-10 container mx-auto px-4 pt-24 md:pt-28 text-center">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -70,7 +70,7 @@ export function HeroSection() {
           transition={{ duration: 0.8, delay: 0.6 }}
           className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10"
         >
-          Descubrí TEOS, donde la música electrónica, las luces y la energía se fusionan 
+          Descubrí La Bastarda, donde la música electrónica, las luces y la energía se fusionan 
           para crear una experiencia única e inolvidable.
         </motion.p>
 

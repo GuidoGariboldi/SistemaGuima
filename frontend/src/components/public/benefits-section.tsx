@@ -8,7 +8,7 @@ const benefits = [
     icon: Percent,
     title: 'Descuentos Exclusivos',
     description: 'Hasta 30% de descuento en bebidas y entradas para socios.',
-    gradient: 'from-purple-500/20 to-pink-500/20',
+    gradient: 'from-red-500/20 to-rose-500/20',
   },
   {
     icon: Zap,
@@ -26,7 +26,7 @@ const benefits = [
     icon: Gift,
     title: 'Programa de Puntos',
     description: 'Acumulá puntos con cada compra y canjealos por premios.',
-    gradient: 'from-green-500/20 to-emerald-500/20',
+    gradient: 'from-red-500/20 to-red-500/20',
   },
   {
     icon: Crown,
@@ -38,7 +38,7 @@ const benefits = [
     icon: Users,
     title: 'Referidos',
     description: 'Invitá amigos y ganá puntos extra cuando se registren.',
-    gradient: 'from-indigo-500/20 to-purple-500/20',
+    gradient: 'from-rose-500/20 to-red-500/20',
   },
 ]
 
@@ -46,7 +46,7 @@ const membershipLevels = [
   { name: 'Starter', points: '0 - 999', color: 'text-blue-400', benefits: 3 },
   { name: 'Silver', points: '1,000 - 4,999', color: 'text-gray-300', benefits: 5 },
   { name: 'Gold', points: '5,000 - 9,999', color: 'text-amber-400', benefits: 7 },
-  { name: 'Platinum', points: '10,000+', color: 'text-purple-400', benefits: 'Todos' },
+  { name: 'Platinum', points: '10,000+', color: 'text-red-400', benefits: 'Todos' },
 ]
 
 export function BenefitsSection() {
@@ -69,7 +69,7 @@ export function BenefitsSection() {
             Más razones para ser <span className="gradient-text">socio</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Descubrí todos los beneficios que tenés por ser parte de la comunidad TEOS.
+            Descubrí todos los beneficios que tenés por ser parte de la comunidad La Bastarda.
           </p>
         </motion.div>
 

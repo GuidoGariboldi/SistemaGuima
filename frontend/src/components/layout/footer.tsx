@@ -51,8 +51,8 @@ const quickLinks = [
   { name: 'Eventos', href: '#eventos' },
   { name: 'Entradas', href: '#entradas' },
   { name: 'La Barra', href: '#barra' },
-  { name: 'Traslado', href: '#traslado' },
-  { name: 'Beneficios', href: '#beneficios' },
+  { name: 'Mesas', href: '#mesas' },
+  { name: 'Info', href: '/info' },
 ]
 
 const legalLinks = [
@@ -76,7 +76,7 @@ export function Footer() {
             viewport={{ once: true }}
           >
             <Link to="/" className="inline-block mb-6">
-              <span className="text-4xl font-bold gradient-text">TEOS</span>
+              <span className="text-4xl font-bold gradient-text">La Bastarda</span>
             </Link>
             <p className="text-muted-foreground text-sm mb-6">
               La experiencia nocturna más exclusiva. Música, luces y energía 
@@ -196,13 +196,13 @@ export function Footer() {
                 Recibí novedades sobre eventos, ofertas exclusivas y más.
               </p>
             </div>
-            <div className="flex w-full md:w-auto gap-2">
+            <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row md:w-auto">
               <input
                 type="email"
                 placeholder="tu@email.com"
                 className="flex-1 md:w-64 px-4 py-3 bg-secondary/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary transition-all"
               />
-              <button className="px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl transition-all neon-glow">
+              <button className="w-full shrink-0 px-5 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl transition-all neon-glow sm:w-auto">
                 Suscribirse
               </button>
             </div>
@@ -213,7 +213,7 @@ export function Footer() {
         <div className="border-t border-white/10 pt-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
-              © 2024 TEOS Club. Todos los derechos reservados.
+              © 2024 La Bastarda Club. Todos los derechos reservados.
             </p>
             <div className="flex flex-wrap justify-center gap-6">
               {legalLinks.map((link) => (
