@@ -53,7 +53,7 @@ export function Navigation({ onLogin, onRegister, isAuthenticated, onProfile, on
               <div className="absolute -inset-2 rounded-full bg-primary/20 blur-xl -z-10" />
             </motion.div>
             <span aria-hidden="true" className="px-0.5 text-base font-semibold text-primary sm:px-1 sm:text-xl">X</span>
-            <img src="/la-bastarda-logo.png" alt="Logo de La Bastarda" className="size-8 shrink-0 rounded-full border border-primary/50 object-cover shadow-[0_0_18px_hsl(var(--primary)/0.35)]" />
+            <img src={`${import.meta.env.BASE_URL}la-bastarda-logo.png`} alt="Logo de La Bastarda" className="size-8 shrink-0 rounded-full border border-primary/50 object-cover shadow-[0_0_18px_hsl(var(--primary)/0.35)]" />
           </Link>
 
           {/* Desktop Navigation */}
