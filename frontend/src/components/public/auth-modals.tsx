@@ -57,7 +57,7 @@ export function AuthModals({ isLoginOpen, isRegisterOpen, onCloseLogin, onCloseR
   return (
     <>
       {(isLoginOpen || isRegisterOpen || success) && <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" onClick={success ? closeSuccess : isLoginOpen ? onCloseLogin : onCloseRegister} />}
-      {success && <motion.div initial={{ opacity: 0, scale: .95 }} animate={{ opacity: 1, scale: 1 }} className="fixed inset-0 z-[51] flex items-center justify-center p-4" role="dialog" aria-modal="true">
+      {success && <motion.div initial={{ opacity: 0, scale: .95 }} animate={{ opacity: 1, scale: 1 }} className="fixed inset-0 z-[51] flex items-center justify-center overflow-y-auto overflow-x-hidden p-4">
         <div className="glass w-full max-w-md rounded-3xl p-8 text-center">
           <CheckCircle2 className="mx-auto mb-4 h-14 w-14 text-primary" />
           <h2 className="gradient-text mb-2 text-3xl font-bold">{success === 'login' ? 'Sesión iniciada' : 'Cuenta creada'}</h2>
