@@ -27,6 +27,10 @@ export function Navigation({ onLogin, onRegister, isAuthenticated, onProfile, on
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50)
@@ -59,15 +63,27 @@ export function Navigation({ onLogin, onRegister, isAuthenticated, onProfile, on
           {/* Desktop Navigation */}
           <nav className="order-2 hidden items-center gap-8 lg:flex">
             {navLinks.map((link) => (
-              <motion.a
-                key={link.name}
-                href={link.href}
-                whileHover={{ scale: 1.05 }}
-                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors relative group"
-              >
-                {link.name}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
-              </motion.a>
+              link.href.startsWith('/') ? (
+                <Link
+                  key={link.name}
+                  to={link.href}
+                  className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors relative group"
+                >
+                  {link.name}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
+                </Link>
+              ) : (
+                <motion.button
+                  key={link.name}
+                  type="button"
+                  onClick={() => scrollToSection(link.href.slice(1))}
+                  whileHover={{ scale: 1.05 }}
+                  className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors relative group"
+                >
+                  {link.name}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
+                </motion.button>
+              )
             ))}
           </nav>
 
@@ -103,17 +119,34 @@ export function Navigation({ onLogin, onRegister, isAuthenticated, onProfile, on
             <div className="absolute inset-0 bg-background/95 backdrop-blur-xl">
               <div className="flex flex-col items-center justify-center h-full gap-8 pt-20">
                 {navLinks.map((link, index) => (
-                  <motion.a
-                    key={link.name}
-                    href={link.href}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-2xl font-medium text-foreground hover:text-primary transition-colors"
-                  >
-                    {link.name}
-                  </motion.a>
+                  link.href.startsWith('/') ? (
+                    <motion.div
+                      key={link.name}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <Link
+                        to={link.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="text-2xl font-medium text-foreground hover:text-primary transition-colors"
+                      >
+                        {link.name}
+                      </Link>
+                    </motion.div>
+                  ) : (
+                    <motion.button
+                      key={link.name}
+                      type="button"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      onClick={() => { setIsMobileMenuOpen(false); scrollToSection(link.href.slice(1)) }}
+                      className="text-2xl font-medium text-foreground hover:text-primary transition-colors"
+                    >
+                      {link.name}
+                    </motion.button>
+                  )
                 ))}
                 <div className="mt-8 flex flex-col items-center gap-4">{isAuthenticated ? <><button type="button" onClick={() => { setIsMobileMenuOpen(false); onProfile() }} className="flex items-center gap-3 rounded-full border border-primary/30 px-4 py-2"><span className="flex size-9 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground">JP</span>Juan Pérez</button><Button type="button" variant="outline" size="lg" onClick={() => { setIsMobileMenuOpen(false); onLogout() }} className="w-48 border-primary/50">Cerrar sesión</Button></> : <><Button type="button" variant="outline" size="lg" onClick={() => { setIsMobileMenuOpen(false); onLogin() }} className="w-48 border-primary/50 text-foreground">Iniciar Sesión</Button><Button type="button" size="lg" onClick={() => { setIsMobileMenuOpen(false); onRegister() }} className="w-48 bg-primary hover:bg-primary/90 neon-glow">Registrarse</Button></>}</div>
               </div>
