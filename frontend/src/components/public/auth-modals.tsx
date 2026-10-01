@@ -28,10 +28,26 @@ export function AuthModals({ isLoginOpen, isRegisterOpen, onCloseLogin, onCloseR
   const [forgotSent, setForgotSent] = useState(false)
   const [termsOpen, setTermsOpen] = useState(false)
 
-  useEffect(() => {
+    useEffect(() => {
     const isAnyOpen = isLoginOpen || isRegisterOpen || !!success
-    document.body.style.overflow = isAnyOpen ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
+    if (!isAnyOpen) return
+
+    const scrollY = window.scrollY
+    const body = document.body
+    body.style.position = 'fixed'
+    body.style.top = `-${scrollY}px`
+    body.style.left = '0'
+    body.style.right = '0'
+    body.style.overflow = 'hidden'
+
+    return () => {
+      body.style.position = ''
+      body.style.top = ''
+      body.style.left = ''
+      body.style.right = ''
+      body.style.overflow = ''
+      window.scrollTo(0, scrollY)
+    }
   }, [isLoginOpen, isRegisterOpen, success])
 
   const submitLogin = (event: React.FormEvent<HTMLFormElement>) => {
