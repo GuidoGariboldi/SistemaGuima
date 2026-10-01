@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Mail, Lock, Eye, EyeOff, User, Calendar, ArrowRight, X, CheckCircle2 } from 'lucide-react'
@@ -24,6 +24,12 @@ export function AuthModals({ isLoginOpen, isRegisterOpen, onCloseLogin, onCloseR
   const [loginError, setLoginError] = useState('')
   const [registerError, setRegisterError] = useState('')
   const [success, setSuccess] = useState<'login' | 'register' | null>(null)
+
+  useEffect(() => {
+    const isAnyOpen = isLoginOpen || isRegisterOpen || !!success
+    document.body.style.overflow = isAnyOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [isLoginOpen, isRegisterOpen, success])
 
   const submitLogin = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -57,7 +63,7 @@ export function AuthModals({ isLoginOpen, isRegisterOpen, onCloseLogin, onCloseR
   return (
     <>
       {(isLoginOpen || isRegisterOpen || success) && <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" onClick={success ? closeSuccess : isLoginOpen ? onCloseLogin : onCloseRegister} />}
-      {success && <motion.div initial={{ opacity: 0, scale: .95 }} animate={{ opacity: 1, scale: 1 }} className="fixed inset-0 z-[51] flex items-center justify-center overflow-y-auto overflow-x-hidden p-4">
+      {success && <motion.div initial={{ opacity: 0, scale: .95 }} animate={{ opacity: 1, scale: 1 }} className="fixed inset-0 z-[51] flex items-center justify-center p-4" role="dialog" aria-modal="true">
         <div className="glass w-full max-w-md rounded-3xl p-8 text-center">
           <CheckCircle2 className="mx-auto mb-4 h-14 w-14 text-primary" />
           <h2 className="gradient-text mb-2 text-3xl font-bold">{success === 'login' ? 'Sesión iniciada' : 'Cuenta creada'}</h2>
@@ -65,7 +71,7 @@ export function AuthModals({ isLoginOpen, isRegisterOpen, onCloseLogin, onCloseR
           <Button onClick={closeSuccess} className="w-full bg-primary py-6">Continuar <ArrowRight className="ml-2 h-5 w-5" /></Button>
         </div>
       </motion.div>}
-      {isLoginOpen && !success && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[51] flex items-center justify-center overflow-y-auto p-4" role="dialog" aria-modal="true" aria-labelledby="login-title">
+      {isLoginOpen && !success && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[51] flex items-center justify-center overflow-y-auto overflow-x-hidden p-4" role="dialog" aria-modal="true" aria-labelledby="login-title">
         <div className="glass relative my-auto w-full max-w-md rounded-3xl p-6 sm:p-8" onClick={(event) => event.stopPropagation()}>
           <button onClick={onCloseLogin} className="absolute right-4 top-4 rounded-full p-2 hover:bg-white/10" aria-label="Cerrar"><X className="h-5 w-5" /></button>
           <div className="mb-8 text-center"><h2 id="login-title" className="gradient-text mb-2 text-3xl font-bold">Bienvenido</h2><p className="text-muted-foreground">Iniciá sesión en tu cuenta La Bastarda</p></div>
@@ -79,7 +85,7 @@ export function AuthModals({ isLoginOpen, isRegisterOpen, onCloseLogin, onCloseR
           </form><p className="mt-6 text-center text-sm text-muted-foreground">¿No tenés cuenta? <button onClick={onSwitchToRegister} className="font-medium text-primary hover:underline">Registrate</button></p>
         </div>
       </motion.div>}
-      {isRegisterOpen && !success && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[51] flex items-center justify-center overflow-y-auto p-4" role="dialog" aria-modal="true" aria-labelledby="register-title">
+      {isRegisterOpen && !success && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-[51] flex items-center justify-center overflow-y-auto overflow-x-hidden p-4" role="dialog" aria-modal="true" aria-labelledby="register-title">
         <div className="glass relative my-auto max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-3xl p-6 sm:p-8" onClick={(event) => event.stopPropagation()}>
           <button onClick={onCloseRegister} className="absolute right-4 top-4 rounded-full p-2 hover:bg-white/10" aria-label="Cerrar"><X className="h-5 w-5" /></button>
           <div className="mb-6 text-center"><h2 id="register-title" className="gradient-text mb-2 text-3xl font-bold">Crear cuenta</h2><p className="text-muted-foreground">Unite a la experiencia La Bastarda</p></div>
