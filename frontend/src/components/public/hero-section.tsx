@@ -41,7 +41,7 @@ export function HeroSection() {
       <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-accent/10 blur-[150px] rounded-full" />
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 pt-24 md:pt-28 text-center">
+      <div className="relative z-10 container mx-auto px-4 pt-24 pb-36 md:pt-28 md:pb-20 text-center">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -122,7 +122,7 @@ export function HeroSection() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.5 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        className="absolute bottom-4 left-1/2 -translate-x-1/2"
       >
         <motion.div
           animate={{ y: [0, 10, 0] }}

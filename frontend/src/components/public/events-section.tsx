@@ -90,7 +90,7 @@ export function EventsSection() {
     : events.filter(e => e.category === activeCategory)
 
   return (
-    <section id="eventos" className="py-24 relative">
+    <section id="eventos" className="py-16 sm:py-24 relative">
       <div className="absolute top-0 right-0 w-1/3 h-1/2 bg-primary/5 blur-[150px] rounded-full" />
       
       <div className="container mx-auto px-4">

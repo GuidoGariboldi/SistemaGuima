@@ -95,7 +95,7 @@ export function BarSection() {
   const checkoutDemo = (method: string) => { setCart([]); setIsCheckoutOpen(false); sileo.info({ title: 'Pedido confirmado', description: `Pago demo con ${method}. En producción acá se generaría el QR de la orden y se enviaría por mail.` }) }
 
   return (
-    <section id="barra" className="py-24 relative">
+    <section id="barra" className="py-16 sm:py-24 relative">
       <div className="absolute top-1/2 right-0 w-1/4 h-1/2 bg-magenta/5 blur-[150px] rounded-full" />
 
       <div className="container mx-auto px-4">
