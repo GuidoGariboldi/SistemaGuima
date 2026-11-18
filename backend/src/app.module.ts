@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { TarjetasModule } from './tarjetas/tarjetas.module';
 import { CajasModule } from './cajas/cajas.module';
 import { VentasModule } from './ventas/ventas.module';
+import { SociosModule } from './socios/socios.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { VentasModule } from './ventas/ventas.module';
     TarjetasModule,
     CajasModule,
     VentasModule,
+    SociosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
