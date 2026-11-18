@@ -7,6 +7,9 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { DatabaseModule } from './database/database.module';
 import { ProductosModule } from './productos/productos.module';
 import { AuthModule } from './auth/auth.module';
+import { TarjetasModule } from './tarjetas/tarjetas.module';
+import { CajasModule } from './cajas/cajas.module';
+import { VentasModule } from './ventas/ventas.module';
 
 @Module({
   imports: [
@@ -15,6 +18,9 @@ import { AuthModule } from './auth/auth.module';
     CommonModule,
     AuthModule,
     ProductosModule,
+    TarjetasModule,
+    CajasModule,
+    VentasModule,
   ],
   controllers: [AppController],
   providers: [AppService],
