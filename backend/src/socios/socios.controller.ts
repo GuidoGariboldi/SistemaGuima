@@ -1,7 +1,8 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from '@nestjs/common';
 import { SociosService } from './socios.service';
 import { RegistrarSocioDto } from './dto/registrar-socio.dto';
 import { LoginDto } from '../auth/dto/login.dto';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -21,6 +22,13 @@ export class SociosController {
   @HttpCode(HttpStatus.OK)
   login(@Body() dto: LoginDto) {
     return this.sociosService.login(dto);
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  findAll(@Query() pagination: PaginationDto) {
+    return this.sociosService.findAll(pagination);
   }
 
   @Get('me')

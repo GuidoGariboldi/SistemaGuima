@@ -25,6 +25,13 @@ export class VentasController {
     return this.ventasService.findAll(pagination, turnoId);
   }
 
+  // Antes de ':id' por la misma razón que 'mia' en tarjetas: si no, Nest
+  // intentaría interpretar "turno" como un id de venta.
+  @Get('turno/:turnoId/resumen')
+  resumenTurno(@Param('turnoId', ParseUuidPipe) turnoId: string) {
+    return this.ventasService.resumenTurno(turnoId);
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseUuidPipe) id: string) {
     return this.ventasService.findOne(id);

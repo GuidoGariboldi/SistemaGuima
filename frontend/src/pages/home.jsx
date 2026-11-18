@@ -8,12 +8,13 @@ import { TableReservationsSection } from '@/components/public/table-reservations
 import { Footer } from '@/components/layout/footer'
 import { AuthModals } from '@/components/public/auth-modals'
 import { UserProfile } from '@/components/public/user-profile'
+import { useAuth } from '@/context/auth-context'
 
 export default function TeosHome() {
+  const { socio, logout } = useAuth()
   const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [isRegisterOpen, setIsRegisterOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   const handleSwitchToRegister = () => {
     setIsLoginOpen(false)
@@ -30,9 +31,9 @@ export default function TeosHome() {
       <Navigation
         onLogin={() => setIsLoginOpen(true)}
         onRegister={() => setIsRegisterOpen(true)}
-        isAuthenticated={isAuthenticated}
+        isAuthenticated={!!socio}
         onProfile={() => setIsProfileOpen(true)}
-        onLogout={() => setIsAuthenticated(false)}
+        onLogout={logout}
       />
 
       <HeroSection />
@@ -49,7 +50,7 @@ export default function TeosHome() {
         onCloseRegister={() => setIsRegisterOpen(false)}
         onSwitchToRegister={handleSwitchToRegister}
         onSwitchToLogin={handleSwitchToLogin}
-        onAuthenticated={() => setIsAuthenticated(true)}
+        onAuthenticated={() => {}}
       />
 
       <UserProfile isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />

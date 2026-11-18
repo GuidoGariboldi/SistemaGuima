@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { TarjetasService } from './tarjetas.service';
 import { CrearTarjetaDto } from './dto/crear-tarjeta.dto';
 import { CargarSaldoDto } from './dto/cargar-saldo.dto';
@@ -7,6 +7,8 @@ import { PaginationDto } from '../common/dtos/pagination.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import type { AuthUser } from '../common/decorators/current-user.decorator';
 
 @Controller('tarjetas')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -19,6 +21,14 @@ export class TarjetasController {
     return this.tarjetasService.create(dto);
   }
 
+  // Va antes de ':cardUid' a propósito: si no, Nest interpretaría "mia"
+  // como si fuera un card_uid literal, porque las rutas se matchean en orden.
+  @Get('mia')
+  @Roles('socio')
+  miTarjeta(@CurrentUser() user: AuthUser) {
+    return this.tarjetasService.findBySocio(user.id);
+  }
+
   @Get(':cardUid')
   @Roles('admin', 'caja')
   findOne(@Param('cardUid') cardUid: string) {
@@ -27,8 +37,18 @@ export class TarjetasController {
 
   @Patch(':cardUid/vincular')
   @Roles('admin', 'caja', 'socio')
-  vincular(@Param('cardUid') cardUid: string, @Body() dto: VincularTarjetaDto) {
-    return this.tarjetasService.vincular(cardUid, dto);
+  vincular(
+    @Param('cardUid') cardUid: string,
+    @Body() dto: VincularTarjetaDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    // Un socio solo puede vincularse a sí mismo, sin importar qué socioId
+    // mande en el body — evitamos que alguien vincule la tarjeta de otro.
+    const socioId = user.rol === 'socio' ? user.id : dto.socioId;
+    if (!socioId) {
+      throw new BadRequestException('Falta indicar a qué socio vincular la tarjeta');
+    }
+    return this.tarjetasService.vincular(cardUid, { socioId });
   }
 
   @Post(':cardUid/cargar')

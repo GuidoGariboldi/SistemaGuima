@@ -1,49 +1,67 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import {
   User, Mail, Calendar, Settings, History, Ticket,
   Crown, Edit3, Camera, ChevronRight, X, Eye, EyeOff, Menu
 } from 'lucide-react'
+import { useAuth } from '@/context/auth-context'
+import { api, ApiError } from '@/lib/api'
 
 interface UserProfileProps {
   isOpen: boolean
   onClose: () => void
 }
 
-const userData = {
-  name: 'Juan',
-  lastName: 'Pérez',
-  email: 'juan.perez@email.com',
-  birthDate: '15/03/1995',
-  memberSince: 'Marzo 2024',
-  memberNumber: 'La Bastarda-2024-0847',
-  membershipLevel: 'VIP',
-  points: 2450,
-  eventsAttended: 12,
-}
-
-const purchaseHistory = [
-  { id: 1, event: 'Neon Dreams', date: '15 Nov 2024', type: 'VIP', price: '$12.000' },
-  { id: 2, event: 'Electric Pulse', date: '02 Nov 2024', type: 'General', price: '$6.000' },
-  { id: 3, event: 'Midnight Rave', date: '20 Oct 2024', type: 'Premium', price: '$25.000' },
-  { id: 4, event: 'Bass Nation', date: '05 Oct 2024', type: 'VIP', price: '$12.000' },
-]
+const money = (value) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(value)
+const mesAno = (iso) => iso ? new Date(iso).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }) : ''
+const fechaCorta = (iso) => iso ? new Date(iso).toLocaleDateString('es-AR') : ''
 
 export function UserProfile({ isOpen, onClose }: UserProfileProps) {
+  const { socio } = useAuth()
   const [activeTab, setActiveTab] = useState('profile')
   const [showMobileMenu, setShowMobileMenu] = useState(true)
-  const [showTeosCard, setShowTeosCard] = useState(false)
   const [cardLinked, setCardLinked] = useState(false)
   const [showCardForm, setShowCardForm] = useState(false)
   const [hideCardNumber, setHideCardNumber] = useState(true)
   const [hideBalance, setHideBalance] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
-  const [profileName, setProfileName] = useState(`${userData.name} ${userData.lastName}`)
+  const [profileName, setProfileName] = useState('')
+  const [tarjeta, setTarjeta] = useState(null)
+  const [cardError, setCardError] = useState('')
+  const [entradas, setEntradas] = useState([])
 
-  if (!isOpen) return null
+  useEffect(() => {
+    if (socio) setProfileName(`${socio.nombre} ${socio.apellido}`)
+  }, [socio])
+
+  useEffect(() => {
+    if (!isOpen || !socio) return
+    api.get('/tarjetas/mia').then((data) => { setTarjeta(data); setCardLinked(true) }).catch(() => { setTarjeta(null); setCardLinked(false) })
+    api.get('/entradas/mias?limit=50').then(setEntradas).catch(() => setEntradas([]))
+  }, [isOpen, socio])
+
+  const vincularTarjeta = async (event) => {
+    event.preventDefault()
+    setCardError('')
+    const cardUid = String(new FormData(event.currentTarget).get('cardNumber') ?? '').trim()
+    if (!cardUid) return
+    try {
+      await api.patch(`/tarjetas/${cardUid}/vincular`, {})
+      const data = await api.get(`/tarjetas/mia`)
+      setTarjeta(data)
+      setCardLinked(true)
+      setShowCardForm(false)
+    } catch (error) {
+      setCardError(error instanceof ApiError ? error.message : 'No se pudo vincular la tarjeta.')
+    }
+  }
+
+  if (!isOpen || !socio) return null
+
+  const entradasActivas = entradas.filter((e) => e.estado === 'valida')
 
   return (
     <motion.div
@@ -76,7 +94,7 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
               <div className="relative mx-auto inline-block">
                 <div className="absolute -inset-3 rounded-full bg-primary/25 blur-2xl" />
                 <div className="relative flex size-24 items-center justify-center rounded-full bg-gradient-to-br from-[#ff655f] via-[#e98763] to-[#8bb34c] text-3xl font-bold text-white shadow-[0_0_30px_hsl(var(--primary)/0.4)] ring-4 ring-white/10">
-                  {userData.name[0]}{userData.lastName[0]}
+                  {socio.nombre[0]}{socio.apellido[0]}
                 </div>
                 <button className="absolute bottom-0 right-0 flex size-8 items-center justify-center rounded-full bg-primary shadow-[0_0_12px_hsl(var(--primary)/0.6)] ring-2 ring-[#120d0e] transition hover:bg-primary/90">
                   <Camera className="h-4 w-4" />
@@ -106,7 +124,6 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                     onClick={() => {
                       setActiveTab(item.id)
                       setShowMobileMenu(false)
-                      if (item.id === 'card') setShowTeosCard(true)
                     }}
                     className={`group relative flex min-h-14 w-full items-center gap-3 overflow-hidden rounded-2xl px-4 py-3 transition-all touch-manipulation active:scale-[0.98] ${
                       isActive
@@ -171,7 +188,7 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                         <Mail className="h-5 w-5 text-primary" />
                         <span className="text-sm text-muted-foreground">Email</span>
                       </div>
-                      <p className="font-medium">{userData.email}</p>
+                      <p className="font-medium">{socio.email}</p>
                     </div>
 
                     <div className="glass rounded-xl p-4">
@@ -179,25 +196,25 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                         <Calendar className="h-5 w-5 text-primary" />
                         <span className="text-sm text-muted-foreground">Fecha de nacimiento</span>
                       </div>
-                      <p className="font-medium">{userData.birthDate}</p>
+                      <p className="font-medium">{fechaCorta(socio.fecha_nac)}</p>
                     </div>
                   </div>
 
                   <div className="space-y-4">
                     <div className="glass rounded-xl p-4">
                       <span className="text-sm text-muted-foreground">Miembro desde</span>
-                      <p className="font-medium">{userData.memberSince}</p>
+                      <p className="font-medium">{mesAno(socio.created_at)}</p>
                     </div>
 
                     <div className="glass rounded-xl p-4">
                       <div className="flex justify-between items-center">
                         <div>
                           <span className="text-sm text-muted-foreground">Puntos acumulados</span>
-                          <p className="text-2xl font-bold gradient-text">{userData.points.toLocaleString()}</p>
+                          <p className="text-2xl font-bold gradient-text">{socio.puntos.toLocaleString()}</p>
                         </div>
                         <div className="text-right">
                           <span className="text-sm text-muted-foreground">Eventos</span>
-                          <p className="text-2xl font-bold">{userData.eventsAttended}</p>
+                          <p className="text-2xl font-bold">{entradas.length}</p>
                         </div>
                       </div>
                     </div>
@@ -235,27 +252,16 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
 
                     {showCardForm && (
                       <form
-                        onSubmit={(event) => {
-                          event.preventDefault()
-                          setCardLinked(true)
-                          setShowCardForm(false)
-                        }}
+                        onSubmit={vincularTarjeta}
                         className="mt-5 space-y-3 border-t border-border pt-5"
                       >
                         <input
                           required
                           name="cardNumber"
-                          inputMode="numeric"
-                          placeholder="Número de tarjeta"
+                          placeholder="Número de tarjeta (ej: TEOS-0001)"
                           className="w-full rounded-xl border border-border bg-secondary/50 px-4 py-3"
                         />
-                        <input
-                          required
-                          name="email"
-                          type="email"
-                          placeholder="Correo de tu cuenta"
-                          className="w-full rounded-xl border border-border bg-secondary/50 px-4 py-3"
-                        />
+                        {cardError && <p className="text-sm text-destructive" role="alert">{cardError}</p>}
                         <Button type="submit" className="w-full bg-primary">
                           Confirmar vinculación
                         </Button>
@@ -268,7 +274,7 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                       <div>
                         <p className="text-xs uppercase tracking-widest text-primary">Tarjeta vinculada</p>
                         <p className="mt-2 font-mono text-lg">
-                          {hideCardNumber ? '•••• •••• •••• 0847' : '5424 4532 8912 0847'}
+                          {hideCardNumber ? `•••• ${tarjeta?.card_uid?.slice(-4) ?? ''}` : tarjeta?.card_uid}
                         </p>
                       </div>
                       <Button variant="outline" size="sm" onClick={() => setHideCardNumber(!hideCardNumber)}>
@@ -290,7 +296,7 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                         </button>
                       </div>
                       <p className="mt-1 text-3xl font-bold tracking-wider text-primary">
-                        {hideBalance ? '••••••' : '$48.500'}
+                        {hideBalance ? '••••••' : money(tarjeta?.saldo ?? 0)}
                       </p>
                     </div>
                   </div>
@@ -301,51 +307,66 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
             {activeTab === 'history' && (
               <div>
                 <h2 className="text-2xl font-bold mb-6">Historial de Compras</h2>
-                <div className="space-y-4">
-                  {purchaseHistory.map((purchase) => (
-                    <div key={purchase.id} className="glass rounded-xl p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
-                          <Ticket className="h-6 w-6 text-primary" />
+                {entradas.length === 0 ? (
+                  <div className="glass rounded-2xl p-6 text-center text-muted-foreground">Todavía no compraste ninguna entrada.</div>
+                ) : (
+                  <div className="space-y-4">
+                    {entradas.map((entrada) => (
+                      <div key={entrada.id} className="glass rounded-xl p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
+                            <Ticket className="h-6 w-6 text-primary" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold">{entrada.evento_nombre}</h4>
+                            <p className="text-sm text-muted-foreground">{fechaCorta(entrada.evento_fecha)}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-bold">{purchase.event}</h4>
-                          <p className="text-sm text-muted-foreground">{purchase.date}</p>
+                        <div className="text-right">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${entrada.estado === 'valida' ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                            {entrada.tipo_entrada_nombre}
+                          </span>
+                          <p className="text-lg font-bold mt-1">{money(entrada.precio)}</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            purchase.type === 'Premium'
-                              ? 'bg-amber-500/20 text-amber-500'
-                              : purchase.type === 'VIP'
-                                ? 'bg-primary/20 text-primary'
-                                : 'bg-accent/20 text-accent'
-                          }`}
-                        >
-                          {purchase.type}
-                        </span>
-                        <p className="text-lg font-bold mt-1">{purchase.price}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === 'tickets' && (
               <div>
                 <h2 className="text-2xl font-bold mb-6">Mis Entradas Activas</h2>
-                <div className="glass rounded-2xl p-6 text-center">
-                  <Ticket className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                  <h4 className="text-lg font-medium mb-2">No tenés entradas activas</h4>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Comprá tu entrada para el próximo evento
-                  </p>
-                  <Button className="bg-primary hover:bg-primary/90">
-                    Ver Eventos
-                  </Button>
-                </div>
+                {entradasActivas.length === 0 ? (
+                  <div className="glass rounded-2xl p-6 text-center">
+                    <Ticket className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                    <h4 className="text-lg font-medium mb-2">No tenés entradas activas</h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Comprá tu entrada para el próximo evento
+                    </p>
+                    <Button className="bg-primary hover:bg-primary/90" onClick={onClose}>
+                      Ver Eventos
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {entradasActivas.map((entrada) => (
+                      <div key={entrada.id} className="glass rounded-xl p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
+                            <Ticket className="h-6 w-6 text-primary" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold">{entrada.evento_nombre}</h4>
+                            <p className="text-sm text-muted-foreground">{entrada.tipo_entrada_nombre} · {fechaCorta(entrada.evento_fecha)}</p>
+                          </div>
+                        </div>
+                        <p className="text-lg font-bold">{money(entrada.precio)}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

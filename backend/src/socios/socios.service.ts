@@ -5,6 +5,7 @@ import { Pool } from 'pg';
 import { PG_POOL } from '../database/database.module';
 import { RegistrarSocioDto } from './dto/registrar-socio.dto';
 import { LoginDto } from '../auth/dto/login.dto';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Injectable()
 export class SociosService {
@@ -61,9 +62,20 @@ export class SociosService {
     return { accessToken: this.jwtService.sign(payload), user: this.sinPassword(socio) };
   }
 
-  async findOne(id: string) {
+  async findAll(pagination: PaginationDto) {
     const result = await this.pool.query(
       `SELECT id, nombre, apellido, email, member_number, nivel, puntos, created_at
+       FROM socios
+       ORDER BY created_at DESC
+       LIMIT $1 OFFSET $2`,
+      [pagination.limit, pagination.offset],
+    );
+    return result.rows;
+  }
+
+  async findOne(id: string) {
+    const result = await this.pool.query(
+      `SELECT id, nombre, apellido, email, fecha_nac, member_number, nivel, puntos, created_at
        FROM socios WHERE id = $1`,
       [id],
     );

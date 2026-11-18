@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -44,6 +45,13 @@ export class EventosController {
   @Roles('admin')
   update(@Param('id', ParseUuidPipe) id: string, @Body() dto: ActualizarEventoDto) {
     return this.eventosService.update(id, dto);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  remove(@Param('id', ParseUuidPipe) id: string) {
+    return this.eventosService.remove(id);
   }
 
   @Post(':id/tipos-entrada')

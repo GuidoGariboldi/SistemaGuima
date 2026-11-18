@@ -68,4 +68,26 @@ export class VentasService {
     );
     return result.rows.map((row) => ({ ...row, total: parseFloat(row.total) }));
   }
+
+  async resumenTurno(turnoId: string) {
+    // Tres subconsultas independientes, a propósito: si hiciéramos un JOIN
+    // directo entre ventas y venta_items, una venta con varios productos
+    // aparecería repetida y el SUM(total) quedaría multiplicado de más.
+    const result = await this.pool.query(
+      `SELECT
+         (SELECT COUNT(*) FROM ventas WHERE turno_id = $1 AND estado = 'completada') AS cantidad,
+         (SELECT COALESCE(SUM(total), 0) FROM ventas WHERE turno_id = $1 AND estado = 'completada') AS total,
+         (SELECT COALESCE(SUM(vi.cantidad), 0)
+            FROM venta_items vi
+            JOIN ventas v ON v.id = vi.venta_id
+           WHERE v.turno_id = $1 AND v.estado = 'completada') AS items`,
+      [turnoId],
+    );
+    const row = result.rows[0];
+    return {
+      cantidad: parseInt(row.cantidad, 10),
+      total: parseFloat(row.total),
+      items: parseInt(row.items, 10),
+    };
+  }
 }

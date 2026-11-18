@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Mail, Lock, Eye, EyeOff, User, Calendar, ArrowRight, X, CheckCircle2 } from 'lucide-react'
+import { useAuth } from '@/context/auth-context'
+import { ApiError } from '@/lib/api'
 
 interface AuthModalsProps {
   isLoginOpen: boolean
@@ -19,6 +21,7 @@ interface AuthModalsProps {
 const inputClass = 'w-full rounded-xl border border-border bg-secondary/50 px-4 py-3 text-base text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/30'
 
 export function AuthModals({ isLoginOpen, isRegisterOpen, onCloseLogin, onCloseRegister, onSwitchToRegister, onSwitchToLogin, onAuthenticated }: AuthModalsProps) {
+  const { login, register } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loginError, setLoginError] = useState('')
@@ -50,31 +53,45 @@ export function AuthModals({ isLoginOpen, isRegisterOpen, onCloseLogin, onCloseR
     }
   }, [isLoginOpen, isRegisterOpen, success])
 
-  const submitLogin = (event: React.FormEvent<HTMLFormElement>) => {
+  const submitLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setLoginError('')
     const data = new FormData(event.currentTarget)
     const email = String(data.get('email') ?? '').trim()
     const password = String(data.get('password') ?? '')
     if (!email || !password) return setLoginError('Completá tu email y contraseña.')
-    setSuccess('login')
-    onAuthenticated()
-    event.currentTarget.reset()
+    try {
+      await login(email, password)
+      setSuccess('login')
+      onAuthenticated()
+      event.currentTarget.reset()
+    } catch (error) {
+      setLoginError(error instanceof ApiError ? error.message : 'No se pudo iniciar sesión.')
+    }
   }
 
-  const submitRegister = (event: React.FormEvent<HTMLFormElement>) => {
+  const submitRegister = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setRegisterError('')
     const data = new FormData(event.currentTarget)
     const password = String(data.get('password') ?? '')
     const confirm = String(data.get('confirmPassword') ?? '')
-    if (!data.get('firstName') || !data.get('lastName') || !data.get('email') || !data.get('birthDate')) return setRegisterError('Completá todos los datos.')
+    const firstName = String(data.get('firstName') ?? '').trim()
+    const lastName = String(data.get('lastName') ?? '').trim()
+    const email = String(data.get('email') ?? '').trim()
+    const birthDate = String(data.get('birthDate') ?? '')
+    if (!firstName || !lastName || !email || !birthDate) return setRegisterError('Completá todos los datos.')
     if (password.length < 8) return setRegisterError('La contraseña debe tener al menos 8 caracteres.')
     if (password !== confirm) return setRegisterError('Las contraseñas no coinciden.')
     if (!data.get('terms')) return setRegisterError('Aceptá los términos y condiciones para continuar.')
-    setSuccess('register')
-    onAuthenticated()
-    event.currentTarget.reset()
+    try {
+      await register({ nombre: firstName, apellido: lastName, email, password, fechaNac: birthDate })
+      setSuccess('register')
+      onAuthenticated()
+      event.currentTarget.reset()
+    } catch (error) {
+      setRegisterError(error instanceof ApiError ? error.message : 'No se pudo crear la cuenta.')
+    }
   }
 
   const closeSuccess = () => { setSuccess(null); onCloseLogin(); onCloseRegister() }

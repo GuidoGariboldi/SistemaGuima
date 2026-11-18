@@ -35,6 +35,18 @@ export class TarjetasService {
     return this.mapTarjeta(result.rows[0]);
   }
 
+  async findBySocio(socioId: string) {
+    const result = await this.pool.query(
+      `SELECT id, card_uid, socio_id, saldo, nivel, estado
+       FROM tarjetas WHERE socio_id = $1`,
+      [socioId],
+    );
+    if (result.rowCount === 0) {
+      throw new NotFoundException('No tenés una tarjeta vinculada todavía');
+    }
+    return this.mapTarjeta(result.rows[0]);
+  }
+
   async vincular(cardUid: string, dto: VincularTarjetaDto) {
     await this.findByCardUid(cardUid);
     const result = await this.pool.query(
