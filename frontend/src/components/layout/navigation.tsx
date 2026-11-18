@@ -3,16 +3,16 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, Home, CalendarDays, Ticket, Wine, Armchair, Info as InfoIcon, ChevronRight, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const navLinks = [
-  { name: 'Inicio', href: '#inicio' },
-  { name: 'Eventos', href: '#eventos' },
-  { name: 'Entradas', href: '#entradas' },
-  { name: 'Barra', href: '#barra' },
-  { name: 'Mesas', href: '#mesas' },
-  { name: 'Info', href: '/info' },
+  { name: 'Inicio', href: '#inicio', icon: Home },
+  { name: 'Eventos', href: '#eventos', icon: CalendarDays },
+  { name: 'Entradas', href: '#entradas', icon: Ticket },
+  { name: 'Barra', href: '#barra', icon: Wine },
+  { name: 'Mesas', href: '#mesas', icon: Armchair },
+  { name: 'Info', href: '/info', icon: InfoIcon },
 ]
 
 interface NavigationProps {
@@ -89,10 +89,20 @@ export function Navigation({ onLogin, onRegister, isAuthenticated, onProfile, on
 
           {/* Desktop Auth Buttons */}
           <div className="order-3 hidden items-center gap-4 lg:flex">
-            {isAuthenticated ? <>
-              <button type="button" onClick={onProfile} className="flex items-center gap-2 rounded-full border border-primary/30 px-3 py-1.5 transition hover:bg-primary/10"><span className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">JP</span><span className="text-sm font-medium">Juan Pérez</span></button>
-              <Button type="button" variant="ghost" onClick={onLogout} className="text-foreground/70">Cerrar sesión</Button>
-            </> : <><Button type="button" variant="ghost" onClick={onLogin} className="text-foreground/80 hover:text-foreground hover:bg-white/5">Iniciar Sesión</Button><Button type="button" onClick={onRegister} className="bg-primary hover:bg-primary/90 text-primary-foreground neon-glow">Registrarse</Button></>}
+            {isAuthenticated ? (
+              <>
+                <button type="button" onClick={onProfile} className="flex items-center gap-2 rounded-full border border-primary/30 px-3 py-1.5 transition hover:bg-primary/10">
+                  <span className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">JP</span>
+                  <span className="text-sm font-medium">Juan Pérez</span>
+                </button>
+                <Button type="button" variant="ghost" onClick={onLogout} className="text-foreground/70">Cerrar sesión</Button>
+              </>
+            ) : (
+              <>
+                <Button type="button" variant="ghost" onClick={onLogin} className="text-foreground/80 hover:text-foreground hover:bg-white/5">Iniciar Sesión</Button>
+                <Button type="button" onClick={onRegister} className="bg-primary hover:bg-primary/90 text-primary-foreground neon-glow">Registrarse</Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -109,49 +119,128 @@ export function Navigation({ onLogin, onRegister, isAuthenticated, onProfile, on
       {/* Mobile Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            transition={{ type: 'spring', damping: 25 }}
-            className="fixed inset-0 z-40 lg:hidden"
-          >
-            <div className="absolute inset-0 bg-background/95 backdrop-blur-xl">
-              <div className="flex flex-col items-center justify-center h-full gap-8 pt-20">
-                {navLinks.map((link, index) => (
-                  link.href.startsWith('/') ? (
+          <div className="fixed inset-0 z-40 lg:hidden">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 bg-background/70 backdrop-blur-sm"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+
+            {/* Sheet that rises from the bottom */}
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+              className="glass absolute inset-x-4 bottom-0 flex max-h-[75dvh] flex-col overflow-hidden rounded-t-[2rem] border border-b-0 border-primary/20 bg-[#120d0e]/95 shadow-2xl shadow-red-950/40"
+              onClick={(event) => event.stopPropagation()}
+            >
+              {/* Drag handle */}
+              <div className="flex shrink-0 justify-center pt-3 pb-1">
+                <span className="h-1.5 w-12 rounded-full bg-white/15" />
+              </div>
+
+              {/* Header */}
+              <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-6 pb-4 pt-2">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.25em] text-primary">Menú</p>
+                  <h3 className="text-xl font-bold gradient-text">La Bastarda</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground"
+                  aria-label="Cerrar menú"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Links */}
+              <nav className="flex-1 space-y-1.5 overflow-y-auto px-4 py-4">
+                {navLinks.map((link, index) => {
+                  const Icon = link.icon
+                  const itemClass = "group flex min-h-14 w-full items-center gap-3 rounded-2xl px-4 py-3 text-base font-semibold text-foreground/90 transition-all hover:bg-primary/10 hover:text-primary active:scale-[0.98]"
+                  return link.href.startsWith('/') ? (
                     <motion.div
                       key={link.name}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
+                      transition={{ delay: index * 0.04 }}
                     >
-                      <Link
-                        to={link.href}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="text-2xl font-medium text-foreground hover:text-primary transition-colors"
-                      >
-                        {link.name}
+                      <Link to={link.href} onClick={() => setIsMobileMenuOpen(false)} className={itemClass}>
+                        <Icon className="h-5 w-5 text-primary" />
+                        <span>{link.name}</span>
+                        <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
                       </Link>
                     </motion.div>
                   ) : (
                     <motion.button
                       key={link.name}
                       type="button"
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
+                      transition={{ delay: index * 0.04 }}
                       onClick={() => { setIsMobileMenuOpen(false); scrollToSection(link.href.slice(1)) }}
-                      className="text-2xl font-medium text-foreground hover:text-primary transition-colors"
+                      className={itemClass}
                     >
-                      {link.name}
+                      <Icon className="h-5 w-5 text-primary" />
+                      <span>{link.name}</span>
+                      <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
                     </motion.button>
                   )
-                ))}
-                <div className="mt-8 flex flex-col items-center gap-4">{isAuthenticated ? <><button type="button" onClick={() => { setIsMobileMenuOpen(false); onProfile() }} className="flex items-center gap-3 rounded-full border border-primary/30 px-4 py-2"><span className="flex size-9 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground">JP</span>Juan Pérez</button><Button type="button" variant="outline" size="lg" onClick={() => { setIsMobileMenuOpen(false); onLogout() }} className="w-48 border-primary/50">Cerrar sesión</Button></> : <><Button type="button" variant="outline" size="lg" onClick={() => { setIsMobileMenuOpen(false); onLogin() }} className="w-48 border-primary/50 text-foreground">Iniciar Sesión</Button><Button type="button" size="lg" onClick={() => { setIsMobileMenuOpen(false); onRegister() }} className="w-48 bg-primary hover:bg-primary/90 neon-glow">Registrarse</Button></>}</div>
+                })}
+              </nav>
+
+              {/* Auth footer */}
+              <div className="shrink-0 border-t border-white/10 bg-black/20 px-6 py-5">
+                {isAuthenticated ? (
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => { setIsMobileMenuOpen(false); onProfile() }}
+                      className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 text-left transition hover:bg-primary/10"
+                    >
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-red-700 font-bold text-primary-foreground shadow-[0_0_14px_hsl(var(--primary)/0.5)]">JP</span>
+                      <span className="truncate font-semibold">Juan Pérez</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setIsMobileMenuOpen(false); onLogout() }}
+                      className="flex size-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 text-muted-foreground transition hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive"
+                      aria-label="Cerrar sesión"
+                    >
+                      <LogOut className="h-5 w-5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="lg"
+                      onClick={() => { setIsMobileMenuOpen(false); onLogin() }}
+                      className="flex-1 border-primary/40 text-foreground"
+                    >
+                      Iniciar Sesión
+                    </Button>
+                    <Button
+                      type="button"
+                      size="lg"
+                      onClick={() => { setIsMobileMenuOpen(false); onRegister() }}
+                      className="flex-1 bg-primary hover:bg-primary/90 neon-glow"
+                    >
+                      Registrarse
+                    </Button>
+                  </div>
+                )}
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </>
