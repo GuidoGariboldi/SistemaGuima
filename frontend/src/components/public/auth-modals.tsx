@@ -64,12 +64,16 @@ export function AuthModals({ isLoginOpen, isRegisterOpen, onCloseLogin, onCloseR
     if (!email || !password) return setLoginError('Completá tu email y contraseña.')
     try {
       const rol = await loginUnificado(email, password)
-      event.currentTarget.reset()
+      // Para admin/caja navegamos directo, sin tocar el formulario — la
+      // pantalla desaparece igual. Resetear acá solo tiene sentido para
+      // el flujo de socio, que se queda en esta misma página.
       if (rol === 'admin') { onCloseLogin(); navigate('/admin'); return }
       if (rol === 'caja') { onCloseLogin(); navigate('/caja'); return }
+      event.currentTarget.reset()
       setSuccess('login')
       onAuthenticated()
     } catch (error) {
+      console.error('Error al iniciar sesión:', error)
       setLoginError(error instanceof ApiError ? error.message : 'No se pudo iniciar sesión.')
     }
   }
@@ -94,6 +98,7 @@ export function AuthModals({ isLoginOpen, isRegisterOpen, onCloseLogin, onCloseR
       onAuthenticated()
       event.currentTarget.reset()
     } catch (error) {
+      console.error('Error al registrarse:', error)
       setRegisterError(error instanceof ApiError ? error.message : 'No se pudo crear la cuenta.')
     }
   }
