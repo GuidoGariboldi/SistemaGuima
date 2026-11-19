@@ -16,9 +16,18 @@ export class HttpExceptionFilter implements ExceptionFilter {
             ? exception.getStatus()
             : HttpStatus.INTERNAL_SERVER_ERROR;
 
-        const message = isHttp
-            ? exception.getResponse()
-            :((exception as Error)?.message ?? 'Error interno del servidor');
+        // exception.getResponse() de un HttpException de Nest NO es el string
+        // del mensaje — es un objeto { statusCode, message, error }. Si lo
+        // mandábamos entero acá, el frontend recibía un objeto anidado
+        // adentro de "message" en vez del texto, y terminaba mostrando
+        // literalmente "[object Object]".
+        let message: unknown;
+        if (isHttp) {
+            const body = exception.getResponse();
+            message = typeof body === 'string' ? body : (body as any)?.message ?? exception.message;
+        } else {
+            message = (exception as Error)?.message ?? 'Error interno del servidor';
+        }
 
         this.logger.error(
             `${request.method} ${request.url}->${status}`,
