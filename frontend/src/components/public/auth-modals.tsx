@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Mail, Lock, Eye, EyeOff, User, Calendar, ArrowRight, X, CheckCircle2 } from 'lucide-react'
@@ -21,7 +22,8 @@ interface AuthModalsProps {
 const inputClass = 'w-full rounded-xl border border-border bg-secondary/50 px-4 py-3 text-base text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/30'
 
 export function AuthModals({ isLoginOpen, isRegisterOpen, onCloseLogin, onCloseRegister, onSwitchToRegister, onSwitchToLogin, onAuthenticated }: AuthModalsProps) {
-  const { login, register } = useAuth()
+  const { loginUnificado, register } = useAuth()
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loginError, setLoginError] = useState('')
@@ -61,10 +63,12 @@ export function AuthModals({ isLoginOpen, isRegisterOpen, onCloseLogin, onCloseR
     const password = String(data.get('password') ?? '')
     if (!email || !password) return setLoginError('Completá tu email y contraseña.')
     try {
-      await login(email, password)
+      const rol = await loginUnificado(email, password)
+      event.currentTarget.reset()
+      if (rol === 'admin') { onCloseLogin(); navigate('/admin'); return }
+      if (rol === 'caja') { onCloseLogin(); navigate('/caja'); return }
       setSuccess('login')
       onAuthenticated()
-      event.currentTarget.reset()
     } catch (error) {
       setLoginError(error instanceof ApiError ? error.message : 'No se pudo iniciar sesión.')
     }

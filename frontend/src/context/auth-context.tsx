@@ -16,10 +16,19 @@ interface AuthResponse {
   user: Socio
 }
 
+type Rol = 'admin' | 'caja' | 'socio'
+
+interface LoginUnificadoResponse {
+  accessToken: string
+  user: { id: string; email: string; rol: Rol }
+}
+
 interface AuthContextValue {
   socio: Socio | null
   loading: boolean
-  login: (email: string, password: string) => Promise<void>
+  // Login único: sirve para socios, admin y caja. Devuelve el rol para
+  // que quien lo llama (el modal del home) decida a dónde navegar.
+  loginUnificado: (email: string, password: string) => Promise<Rol>
   register: (data: {
     nombre: string
     apellido: string
@@ -47,10 +56,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false))
   }, [])
 
-  const login = async (email: string, password: string) => {
-    const result = await api.post<AuthResponse>('/socios/login', { email, password })
+  const loginUnificado = async (email: string, password: string): Promise<Rol> => {
+    const result = await api.post<LoginUnificadoResponse>('/auth/login', { email, password })
     setToken(result.accessToken)
-    setSocio(result.user)
+    if (result.user.rol === 'socio') {
+      const perfil = await api.get<Socio>('/socios/me')
+      setSocio(perfil)
+    } else {
+      setSocio(null)
+    }
+    return result.user.rol
   }
 
   const register = async (data: {
@@ -71,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ socio, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ socio, loading, loginUnificado, register, logout }}>
       {children}
     </AuthContext.Provider>
   )
