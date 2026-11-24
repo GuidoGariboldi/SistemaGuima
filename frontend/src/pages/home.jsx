@@ -32,6 +32,7 @@ export default function TeosHome() {
         onLogin={() => setIsLoginOpen(true)}
         onRegister={() => setIsRegisterOpen(true)}
         isAuthenticated={!!socio}
+        nombreCompleto={socio ? `${socio.nombre} ${socio.apellido}` : ''}
         onProfile={() => setIsProfileOpen(true)}
         onLogout={logout}
       />

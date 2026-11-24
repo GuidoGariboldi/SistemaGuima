@@ -213,7 +213,7 @@ export function Footer() {
         <div className="border-t border-white/10 pt-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
-              © 2024 La Bastarda Club. Todos los derechos reservados.
+              © {new Date().getFullYear()} La Bastarda Club. Todos los derechos reservados.
             </p>
             <div className="flex flex-wrap justify-center gap-6">
               {legalLinks.map((link) => (

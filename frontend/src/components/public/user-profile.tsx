@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import {
   User, Mail, Calendar, Settings, History, Ticket,
-  Crown, Edit3, Camera, ChevronRight, X, Eye, EyeOff, Menu
+  Crown, Edit3, Camera, ChevronRight, X, Eye, EyeOff, Menu,
+  Pause, Play, ShieldAlert, Wine, Sparkles, Star, IdCard, Loader2
 } from 'lucide-react'
 import { useAuth } from '@/context/auth-context'
 import { api, ApiError } from '@/lib/api'
@@ -20,7 +22,8 @@ const mesAno = (iso) => iso ? new Date(iso).toLocaleDateString('es-AR', { month:
 const fechaCorta = (iso) => iso ? new Date(iso).toLocaleDateString('es-AR') : ''
 
 export function UserProfile({ isOpen, onClose }: UserProfileProps) {
-  const { socio } = useAuth()
+  const { socio, actualizarPerfil } = useAuth()
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('profile')
   const [showMobileMenu, setShowMobileMenu] = useState(true)
   const [cardLinked, setCardLinked] = useState(false)
@@ -28,19 +31,48 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
   const [hideCardNumber, setHideCardNumber] = useState(true)
   const [hideBalance, setHideBalance] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
-  const [profileName, setProfileName] = useState('')
+  const [nombreEdit, setNombreEdit] = useState('')
+  const [apellidoEdit, setApellidoEdit] = useState('')
+  const [dniEdit, setDniEdit] = useState('')
+  const [perfilError, setPerfilError] = useState('')
+  const [guardandoPerfil, setGuardandoPerfil] = useState(false)
   const [tarjeta, setTarjeta] = useState(null)
   const [cardError, setCardError] = useState('')
   const [entradas, setEntradas] = useState([])
+  const [movimientos, setMovimientos] = useState([])
+  const [productos, setProductos] = useState([])
+  const [accionTarjetaLoading, setAccionTarjetaLoading] = useState(false)
+  const [accionTarjetaError, setAccionTarjetaError] = useState('')
+  const [confirmandoPerdida, setConfirmandoPerdida] = useState(false)
 
   useEffect(() => {
-    if (socio) setProfileName(`${socio.nombre} ${socio.apellido}`)
+    if (socio) { setNombreEdit(socio.nombre); setApellidoEdit(socio.apellido); setDniEdit(socio.dni ?? '') }
   }, [socio])
+
+  const guardarPerfil = async () => {
+    setPerfilError('')
+    if (dniEdit && !/^\d{7,8}$/.test(dniEdit)) return setPerfilError('El DNI debe tener 7 u 8 dígitos, sin puntos.')
+    setGuardandoPerfil(true)
+    try {
+      await actualizarPerfil({ nombre: nombreEdit, apellido: apellidoEdit, dni: dniEdit || undefined })
+      setIsEditing(false)
+    } catch (error) {
+      setPerfilError(error instanceof ApiError ? error.message : 'No se pudo guardar el perfil.')
+    } finally {
+      setGuardandoPerfil(false)
+    }
+  }
+
+  const cargarTarjeta = () => {
+    api.get('/tarjetas/mia').then((data) => { setTarjeta(data); setCardLinked(true) }).catch(() => { setTarjeta(null); setCardLinked(false) })
+    api.get('/tarjetas/mia/movimientos?limit=50').then(setMovimientos).catch(() => setMovimientos([]))
+  }
 
   useEffect(() => {
     if (!isOpen || !socio) return
-    api.get('/tarjetas/mia').then((data) => { setTarjeta(data); setCardLinked(true) }).catch(() => { setTarjeta(null); setCardLinked(false) })
+    cargarTarjeta()
     api.get('/entradas/mias?limit=50').then(setEntradas).catch(() => setEntradas([]))
+    api.get('/productos?limit=100').then(setProductos).catch(() => setProductos([]))
   }, [isOpen, socio])
 
   const vincularTarjeta = async (event) => {
@@ -56,6 +88,46 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
       setShowCardForm(false)
     } catch (error) {
       setCardError(error instanceof ApiError ? error.message : 'No se pudo vincular la tarjeta.')
+    }
+  }
+
+  const pausarTarjeta = async () => {
+    setAccionTarjetaError('')
+    setAccionTarjetaLoading(true)
+    try {
+      await api.patch('/tarjetas/mia/pausar', {})
+      cargarTarjeta()
+    } catch (error) {
+      setAccionTarjetaError(error instanceof ApiError ? error.message : 'No se pudo pausar la tarjeta.')
+    } finally {
+      setAccionTarjetaLoading(false)
+    }
+  }
+
+  const reactivarTarjeta = async () => {
+    setAccionTarjetaError('')
+    setAccionTarjetaLoading(true)
+    try {
+      await api.patch('/tarjetas/mia/reactivar', {})
+      cargarTarjeta()
+    } catch (error) {
+      setAccionTarjetaError(error instanceof ApiError ? error.message : 'No se pudo reactivar la tarjeta.')
+    } finally {
+      setAccionTarjetaLoading(false)
+    }
+  }
+
+  const reportarPerdida = async () => {
+    setAccionTarjetaError('')
+    setAccionTarjetaLoading(true)
+    try {
+      await api.patch('/tarjetas/mia/reportar-perdida', {})
+      setConfirmandoPerdida(false)
+      cargarTarjeta()
+    } catch (error) {
+      setAccionTarjetaError(error instanceof ApiError ? error.message : 'No se pudo dar de baja la tarjeta.')
+    } finally {
+      setAccionTarjetaLoading(false)
     }
   }
 
@@ -100,7 +172,7 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                   <Camera className="h-4 w-4" />
                 </button>
               </div>
-              <h3 className="mt-4 text-xl font-bold">{profileName}</h3>
+              <h3 className="mt-4 text-xl font-bold">{socio.nombre} {socio.apellido}</h3>
               <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1">
                 <Crown className="h-3.5 w-3.5 text-primary" />
                 <span className="text-xs font-semibold tracking-wide text-primary">Cliente La Bastarda</span>
@@ -114,6 +186,7 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                 { id: 'card', label: 'Tarjeta La Bastarda', icon: Crown },
                 { id: 'history', label: 'Historial', icon: History },
                 { id: 'tickets', label: 'Mis Entradas', icon: Ticket },
+                { id: 'products', label: 'Barra', icon: Wine },
                 { id: 'settings', label: 'Configuración', icon: Settings },
               ].map((item) => {
                 const Icon = item.icon
@@ -158,11 +231,12 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold">Mi Perfil</h2>
-                  <Button variant="outline" size="sm" onClick={() => setIsEditing(!isEditing)} className="border-primary/50">
-                    <Edit3 className="mr-2 h-4 w-4" />
+                  <Button variant="outline" size="sm" disabled={guardandoPerfil} onClick={() => (isEditing ? guardarPerfil() : setIsEditing(true))} className="border-primary/50">
+                    {guardandoPerfil ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Edit3 className="mr-2 h-4 w-4" />}
                     {isEditing ? 'Guardar' : 'Editar'}
                   </Button>
                 </div>
+                {perfilError && <p className="mb-4 text-sm text-destructive" role="alert">{perfilError}</p>}
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-4">
@@ -172,14 +246,12 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                         <span className="text-sm text-muted-foreground">Nombre completo</span>
                       </div>
                       {isEditing ? (
-                        <input
-                          value={profileName}
-                          onChange={(event) => setProfileName(event.target.value)}
-                          className="w-full rounded-lg border border-primary/40 bg-background/40 px-3 py-2 font-medium"
-                          aria-label="Nombre completo"
-                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <input value={nombreEdit} onChange={(event) => setNombreEdit(event.target.value)} className="w-full rounded-lg border border-primary/40 bg-background/40 px-3 py-2 font-medium" aria-label="Nombre" placeholder="Nombre" />
+                          <input value={apellidoEdit} onChange={(event) => setApellidoEdit(event.target.value)} className="w-full rounded-lg border border-primary/40 bg-background/40 px-3 py-2 font-medium" aria-label="Apellido" placeholder="Apellido" />
+                        </div>
                       ) : (
-                        <p className="font-medium">{profileName}</p>
+                        <p className="font-medium">{socio.nombre} {socio.apellido}</p>
                       )}
                     </div>
 
@@ -197,6 +269,18 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                         <span className="text-sm text-muted-foreground">Fecha de nacimiento</span>
                       </div>
                       <p className="font-medium">{fechaCorta(socio.fecha_nac)}</p>
+                    </div>
+
+                    <div className="glass rounded-xl p-4">
+                      <div className="flex items-center gap-3 mb-2">
+                        <IdCard className="h-5 w-5 text-primary" />
+                        <span className="text-sm text-muted-foreground">DNI</span>
+                      </div>
+                      {isEditing ? (
+                        <input value={dniEdit} onChange={(event) => setDniEdit(event.target.value.replace(/\D/g, ''))} inputMode="numeric" placeholder="Sin puntos, ej: 30123456" className="w-full rounded-lg border border-primary/40 bg-background/40 px-3 py-2 font-medium" aria-label="DNI" />
+                      ) : (
+                        <p className="font-medium">{socio.dni || <span className="text-muted-foreground">Sin cargar — lo necesitás para comprar entradas</span>}</p>
+                      )}
                     </div>
                   </div>
 
@@ -277,28 +361,90 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                           {hideCardNumber ? `•••• ${tarjeta?.card_uid?.slice(-4) ?? ''}` : tarjeta?.card_uid}
                         </p>
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => setHideCardNumber(!hideCardNumber)}>
-                        {hideCardNumber ? 'Mostrar' : 'Ocultar'}
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        {tarjeta?.estado === 'bloqueada' && (
+                          <span className="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-medium text-amber-400">Pausada</span>
+                        )}
+                        <Button variant="outline" size="sm" onClick={() => setHideCardNumber(!hideCardNumber)}>
+                          {hideCardNumber ? 'Mostrar' : 'Ocultar'}
+                        </Button>
+                      </div>
                     </div>
 
-                    <div className="rounded-xl bg-primary/10 p-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm text-muted-foreground">Saldo disponible</p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-xl bg-primary/10 p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm text-muted-foreground">Saldo disponible</p>
+                          <button
+                            type="button"
+                            onClick={() => setHideBalance(!hideBalance)}
+                            aria-label={hideBalance ? 'Mostrar saldo' : 'Ocultar saldo'}
+                            aria-pressed={!hideBalance}
+                            className="rounded-full p-2 text-primary transition hover:bg-primary/15"
+                          >
+                            {hideBalance ? <Eye className="size-5" /> : <EyeOff className="size-5" />}
+                          </button>
+                        </div>
+                        <p className="mt-1 text-3xl font-bold tracking-wider text-primary">
+                          {hideBalance ? '••••••' : money(tarjeta?.saldo ?? 0)}
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl bg-muted/30 p-4">
+                        <div className="flex items-center gap-2 text-muted-foreground"><Star className="size-4" /><p className="text-sm">Puntos acumulados</p></div>
+                        <p className="mt-1 text-3xl font-bold tracking-wider">{socio.puntos.toLocaleString()}</p>
+                      </div>
+                    </div>
+
+                    <Button
+                      onClick={() => { onClose(); navigate('/carga') }}
+                      disabled={tarjeta?.estado !== 'activa'}
+                      className="mt-5 w-full bg-primary disabled:opacity-40"
+                    >
+                      Cargar saldo
+                    </Button>
+
+                    {accionTarjetaError && <p className="mt-3 text-sm text-destructive" role="alert">{accionTarjetaError}</p>}
+
+                    <div className="mt-3 flex gap-3">
+                      {tarjeta?.estado === 'activa' ? (
                         <button
                           type="button"
-                          onClick={() => setHideBalance(!hideBalance)}
-                          aria-label={hideBalance ? 'Mostrar saldo' : 'Ocultar saldo'}
-                          aria-pressed={!hideBalance}
-                          className="rounded-full p-2 text-primary transition hover:bg-primary/15"
+                          disabled={accionTarjetaLoading}
+                          onClick={pausarTarjeta}
+                          className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border px-4 py-3 text-sm transition hover:bg-muted disabled:opacity-50"
                         >
-                          {hideBalance ? <Eye className="size-5" /> : <EyeOff className="size-5" />}
+                          <Pause className="size-4" />Pausar tarjeta
                         </button>
-                      </div>
-                      <p className="mt-1 text-3xl font-bold tracking-wider text-primary">
-                        {hideBalance ? '••••••' : money(tarjeta?.saldo ?? 0)}
-                      </p>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={accionTarjetaLoading}
+                          onClick={reactivarTarjeta}
+                          className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-primary/40 px-4 py-3 text-sm text-primary transition hover:bg-primary/10 disabled:opacity-50"
+                        >
+                          <Play className="size-4" />Reactivar tarjeta
+                        </button>
+                      )}
                     </div>
+
+                    {!confirmandoPerdida ? (
+                      <button
+                        type="button"
+                        onClick={() => setConfirmandoPerdida(true)}
+                        className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/30 px-4 py-3 text-sm text-destructive transition hover:bg-destructive/10"
+                      >
+                        <ShieldAlert className="size-4" />Reporté pérdida o robo
+                      </button>
+                    ) : (
+                      <div className="mt-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+                        <p className="text-sm text-foreground">Esta tarjeta va a quedar dada de baja para siempre. El saldo no se pierde, pero vas a tener que vincular una tarjeta nueva para volver a usarlo.</p>
+                        <div className="mt-4 flex gap-3">
+                          <button type="button" onClick={() => setConfirmandoPerdida(false)} className="flex-1 rounded-xl border border-border px-4 py-2.5 text-sm hover:bg-muted">Cancelar</button>
+                          <button type="button" disabled={accionTarjetaLoading} onClick={reportarPerdida} className="flex-1 rounded-xl bg-destructive/15 px-4 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/25 disabled:opacity-50">Confirmar baja</button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -306,7 +452,34 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
 
             {activeTab === 'history' && (
               <div>
-                <h2 className="text-2xl font-bold mb-6">Historial de Compras</h2>
+                <h2 className="text-2xl font-bold mb-2">Historial</h2>
+                <p className="mb-6 text-sm text-muted-foreground">Movimientos de tu tarjeta y entradas compradas.</p>
+
+                <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Movimientos de tarjeta</h3>
+                {movimientos.length === 0 ? (
+                  <div className="glass rounded-2xl p-6 text-center text-muted-foreground">Todavía no hay movimientos en tu tarjeta.</div>
+                ) : (
+                  <div className="space-y-3">
+                    {movimientos.map((mov) => (
+                      <div key={mov.id} className="glass rounded-xl p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${mov.tipo === 'carga' || mov.tipo === 'devolucion' ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                            {mov.tipo === 'carga' || mov.tipo === 'devolucion' ? <Play className="h-4 w-4 rotate-90" /> : <Wine className="h-4 w-4" />}
+                          </div>
+                          <div>
+                            <h4 className="font-medium capitalize">{mov.tipo}{mov.medio_pago ? ` · ${mov.medio_pago}` : ''}</h4>
+                            <p className="text-sm text-muted-foreground">{fechaCorta(mov.created_at)}</p>
+                          </div>
+                        </div>
+                        <p className={`text-lg font-bold ${mov.tipo === 'carga' || mov.tipo === 'devolucion' ? 'text-primary' : ''}`}>
+                          {mov.tipo === 'carga' || mov.tipo === 'devolucion' ? '+' : '-'}{money(mov.monto)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <h3 className="mb-3 mt-8 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Entradas compradas</h3>
                 {entradas.length === 0 ? (
                   <div className="glass rounded-2xl p-6 text-center text-muted-foreground">Todavía no compraste ninguna entrada.</div>
                 ) : (
@@ -332,6 +505,32 @@ export function UserProfile({ isOpen, onClose }: UserProfileProps) {
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab === 'products' && (
+              <div>
+                <h2 className="mb-2 text-2xl font-bold">Barra La Bastarda</h2>
+                <p className="mb-6 text-sm text-muted-foreground">Lo que vas a encontrar en la barra esta noche.</p>
+                {productos.length === 0 ? (
+                  <div className="glass rounded-2xl p-6 text-center text-muted-foreground">Todavía no hay productos cargados.</div>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {productos.map((producto) => (
+                      <div key={producto.id} className="glass flex items-center justify-between gap-3 rounded-xl p-4">
+                        <div className="min-w-0">
+                          <h4 className="truncate font-medium">{producto.nombre}</h4>
+                          <p className="text-xs text-muted-foreground">{producto.categoria}</p>
+                        </div>
+                        <p className="shrink-0 font-semibold text-primary">{money(producto.precio)}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-6 flex items-start gap-3 rounded-2xl border border-primary/20 bg-primary/5 p-4 text-xs leading-relaxed text-muted-foreground">
+                  <Sparkles className="mt-0.5 shrink-0 text-primary" size={17} />
+                  Todavía no tenemos promociones cargadas — cuando el club defina descuentos o combos, van a aparecer acá.
+                </div>
               </div>
             )}
 

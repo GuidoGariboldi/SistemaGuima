@@ -3,6 +3,9 @@
 /node_modules
 /build
 
+# archivos subidos por usuarios (imágenes de eventos, etc.)
+/uploads
+
 # Logs
 logs
 *.log

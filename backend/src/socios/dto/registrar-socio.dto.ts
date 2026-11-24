@@ -1,4 +1,4 @@
-import { IsDateString, IsEmail, IsString, MinLength } from 'class-validator';
+import { IsDateString, IsEmail, IsString, Matches, MinLength } from 'class-validator';
 
 export class RegistrarSocioDto {
   @IsString()
@@ -18,4 +18,8 @@ export class RegistrarSocioDto {
 
   @IsDateString()
   fechaNac!: string;
+
+  // DNI argentino: 7 u 8 dígitos, sin puntos.
+  @Matches(/^\d{7,8}$/, { message: 'El DNI debe tener 7 u 8 dígitos, sin puntos' })
+  dni!: string;
 }

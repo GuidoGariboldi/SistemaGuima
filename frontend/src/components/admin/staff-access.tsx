@@ -2,13 +2,18 @@
 
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LockKeyhole, ArrowRight, CreditCard, WalletCards } from 'lucide-react'
+import { LockKeyhole, ArrowRight, CreditCard, ShieldCheck, WalletCards } from 'lucide-react'
 import { CashierDashboard } from '@/components/admin/cashier-dashboard'
 import { AdminDashboard } from '@/components/admin/admin-dashboard'
+import { ControlAcceso } from '@/components/admin/control-acceso'
 import { api, ApiError, setToken } from '@/lib/api'
 import { decodeJwt } from '@/lib/jwt'
 
-type StaffRole = 'admin' | 'caja'
+type StaffRole = 'admin' | 'caja' | 'seguridad'
+
+const STAFF_HOME: Record<StaffRole, string> = { admin: '/admin', caja: '/caja', seguridad: '/control' }
+const STAFF_TITULO: Record<StaffRole, string> = { admin: 'Acceso administrador', caja: 'Acceso a caja', seguridad: 'Acceso de seguridad' }
+const STAFF_EMAIL_PLACEHOLDER: Record<StaffRole, string> = { admin: 'admin@teos.com', caja: 'caja@teos.com', seguridad: 'seguridad@teos.com' }
 
 function tokenValidoParaRol(role: StaffRole): boolean {
   const token = localStorage.getItem('teos-token')
@@ -41,7 +46,6 @@ function StaffLogin({ role }: { role: StaffRole }) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const isAdmin = role === 'admin'
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -57,7 +61,7 @@ function StaffLogin({ role }: { role: StaffRole }) {
         return
       }
       setToken(result.accessToken)
-      navigate(`/${role}`, { replace: true })
+      navigate(STAFF_HOME[role], { replace: true })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'No se pudo iniciar sesión.')
     } finally {
@@ -71,11 +75,11 @@ function StaffLogin({ role }: { role: StaffRole }) {
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 grid size-14 place-items-center rounded-2xl bg-primary/15 text-primary"><LockKeyhole className="size-7" /></div>
           <p className="font-mono text-xs uppercase tracking-[0.28em] text-primary">La Bastarda Control</p>
-          <h1 className="mt-3 text-3xl font-bold text-foreground">{isAdmin ? 'Acceso administrador' : 'Acceso a caja'}</h1>
+          <h1 className="mt-3 text-3xl font-bold text-foreground">{STAFF_TITULO[role]}</h1>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">Ingresá tus credenciales para continuar.</p>
         </div>
         <form onSubmit={submit} className="space-y-5">
-          <label className="block space-y-2"><span className="text-sm font-medium">Email</span><input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder={isAdmin ? 'admin@teos.com' : 'caja@teos.com'} className="h-14 w-full rounded-xl border border-border bg-secondary/60 px-4 text-base outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30" /></label>
+          <label className="block space-y-2"><span className="text-sm font-medium">Email</span><input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder={STAFF_EMAIL_PLACEHOLDER[role]} className="h-14 w-full rounded-xl border border-border bg-secondary/60 px-4 text-base outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30" /></label>
           <label className="block space-y-2"><span className="text-sm font-medium">Contraseña</span><input required type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••" className="h-14 w-full rounded-xl border border-border bg-secondary/60 px-4 text-base outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30" /></label>
           {error && <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
           <button disabled={loading} className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-primary font-semibold text-primary-foreground transition hover:brightness-110 disabled:opacity-60">{loading ? 'Ingresando…' : 'Ingresar'} <ArrowRight className="size-5" /></button>
@@ -122,8 +126,9 @@ export function CashierAccess() {
 }
 
 export function AdminAccess() { return <StaffGate role="admin"><AdminDashboard /></StaffGate> }
+export function SeguridadAccess() { return <StaffGate role="seguridad"><ControlAcceso /></StaffGate> }
 export { StaffLogin }
-export function LoginIcon({ role }: { role: StaffRole }) { return role === 'admin' ? <WalletCards className="size-5" /> : <CreditCard className="size-5" /> }
+export function LoginIcon({ role }: { role: StaffRole }) { return role === 'admin' ? <WalletCards className="size-5" /> : role === 'seguridad' ? <ShieldCheck className="size-5" /> : <CreditCard className="size-5" /> }
 export function StaffLoginPage({ role }: { role: StaffRole }) { return <StaffLogin role={role} /> }
 
 export function StaffGate({ role, children }: { role: StaffRole; children: React.ReactNode }) {

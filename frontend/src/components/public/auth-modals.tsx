@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { Mail, Lock, Eye, EyeOff, User, Calendar, ArrowRight, X, CheckCircle2 } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, User, Calendar, ArrowRight, X, CheckCircle2, IdCard } from 'lucide-react'
 import { useAuth } from '@/context/auth-context'
-import { ApiError } from '@/lib/api'
+import { ApiError, API_URL } from '@/lib/api'
 
 interface AuthModalsProps {
   isLoginOpen: boolean
@@ -18,7 +18,8 @@ interface AuthModalsProps {
   onAuthenticated: () => void
 }
 
-// Demo visual: en producción este botón usaría OAuth de Google y una sesión persistente.
+const continuarConGoogle = () => { window.location.href = `${API_URL}/auth/google` }
+
 const inputClass = 'w-full rounded-xl border border-border bg-secondary/50 px-4 py-3 text-base text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/30'
 
 export function AuthModals({ isLoginOpen, isRegisterOpen, onCloseLogin, onCloseRegister, onSwitchToRegister, onSwitchToLogin, onAuthenticated }: AuthModalsProps) {
@@ -69,6 +70,7 @@ export function AuthModals({ isLoginOpen, isRegisterOpen, onCloseLogin, onCloseR
       // el flujo de socio, que se queda en esta misma página.
       if (rol === 'admin') { onCloseLogin(); navigate('/admin'); return }
       if (rol === 'caja') { onCloseLogin(); navigate('/caja'); return }
+      if (rol === 'seguridad') { onCloseLogin(); navigate('/control'); return }
       event.currentTarget.reset()
       setSuccess('login')
       onAuthenticated()
@@ -88,12 +90,14 @@ export function AuthModals({ isLoginOpen, isRegisterOpen, onCloseLogin, onCloseR
     const lastName = String(data.get('lastName') ?? '').trim()
     const email = String(data.get('email') ?? '').trim()
     const birthDate = String(data.get('birthDate') ?? '')
-    if (!firstName || !lastName || !email || !birthDate) return setRegisterError('Completá todos los datos.')
+    const dni = String(data.get('dni') ?? '').trim()
+    if (!firstName || !lastName || !email || !birthDate || !dni) return setRegisterError('Completá todos los datos.')
+    if (!/^\d{7,8}$/.test(dni)) return setRegisterError('El DNI debe tener 7 u 8 dígitos, sin puntos.')
     if (password.length < 8) return setRegisterError('La contraseña debe tener al menos 8 caracteres.')
     if (password !== confirm) return setRegisterError('Las contraseñas no coinciden.')
     if (!data.get('terms')) return setRegisterError('Aceptá los términos y condiciones para continuar.')
     try {
-      await register({ nombre: firstName, apellido: lastName, email, password, fechaNac: birthDate })
+      await register({ nombre: firstName, apellido: lastName, email, password, fechaNac: birthDate, dni })
       setSuccess('register')
       onAuthenticated()
       event.currentTarget.reset()
@@ -153,7 +157,7 @@ export function AuthModals({ isLoginOpen, isRegisterOpen, onCloseLogin, onCloseR
           ) : (
             <>
               <div className="mb-8 text-center"><h2 id="login-title" className="gradient-text mb-2 text-3xl font-bold">Bienvenido</h2><p className="text-muted-foreground">Iniciá sesión en tu cuenta La Bastarda</p></div>
-              <button type="button" onClick={() => { setSuccess('login'); onAuthenticated() }} className="mb-5 flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-white px-4 py-3 font-medium text-slate-900 transition hover:bg-slate-100"><span className="font-bold text-red-500">G</span> Continuar con Google</button><div className="mb-5 flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />o con email<span className="h-px flex-1 bg-border" /></div>
+              <button type="button" onClick={continuarConGoogle} className="mb-5 flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-white px-4 py-3 font-medium text-slate-900 transition hover:bg-slate-100"><span className="font-bold text-red-500">G</span> Continuar con Google</button><div className="mb-5 flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />o con email<span className="h-px flex-1 bg-border" /></div>
               <form className="space-y-5" onSubmit={submitLogin} noValidate>
                 <label className="block space-y-2 text-sm font-medium">Email<div className="relative"><Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" /><input required name="email" type="email" autoComplete="email" placeholder="tu@email.com" className={`${inputClass} pl-12`} /></div></label>
                 <label className="block space-y-2 text-sm font-medium">Contraseña<div className="relative"><Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" /><input required name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" placeholder="Mínimo 8 caracteres" className={`${inputClass} pl-12 pr-12`} /><button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>{showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</button></div></label>
@@ -169,11 +173,12 @@ export function AuthModals({ isLoginOpen, isRegisterOpen, onCloseLogin, onCloseR
         <div className="glass relative my-auto max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-3xl p-6 sm:p-8" onClick={(event) => event.stopPropagation()}>
           <button onClick={onCloseRegister} className="absolute right-4 top-4 rounded-full p-2 hover:bg-white/10" aria-label="Cerrar"><X className="h-5 w-5" /></button>
           <div className="mb-6 text-center"><h2 id="register-title" className="gradient-text mb-2 text-3xl font-bold">Crear cuenta</h2><p className="text-muted-foreground">Unite a la experiencia La Bastarda</p></div>
-          <button type="button" onClick={() => { setSuccess('register'); onAuthenticated() }} className="mb-5 flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-white px-4 py-3 font-medium text-slate-900 transition hover:bg-slate-100"><span className="font-bold text-red-500">G</span> Registrarte con Google</button><div className="mb-5 flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />o con email<span className="h-px flex-1 bg-border" /></div>
+          <button type="button" onClick={continuarConGoogle} className="mb-5 flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-white px-4 py-3 font-medium text-slate-900 transition hover:bg-slate-100"><span className="font-bold text-red-500">G</span> Registrarte con Google</button><div className="mb-5 flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />o con email<span className="h-px flex-1 bg-border" /></div>
           <form className="space-y-4" onSubmit={submitRegister} noValidate>
             <div className="grid gap-4 sm:grid-cols-2"><label className="space-y-2 text-sm font-medium">Nombre<input required name="firstName" placeholder="Juan" className={inputClass} /></label><label className="space-y-2 text-sm font-medium">Apellido<input required name="lastName" placeholder="Pérez" className={inputClass} /></label></div>
             <label className="block space-y-2 text-sm font-medium">Email<div className="relative"><Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" /><input required name="email" type="email" autoComplete="email" placeholder="tu@email.com" className={`${inputClass} pl-12`} /></div></label>
             <label className="block space-y-2 text-sm font-medium">Fecha de nacimiento<div className="relative"><Calendar className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" /><input required name="birthDate" type="date" className={`${inputClass} pl-12`} /></div></label>
+            <label className="block space-y-2 text-sm font-medium">DNI<div className="relative"><IdCard className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" /><input required name="dni" inputMode="numeric" placeholder="Sin puntos, ej: 30123456" className={`${inputClass} pl-12`} /></div><span className="block text-xs font-normal text-muted-foreground">Lo vamos a pedir en la puerta para validar tu entrada.</span></label>
             <label className="block space-y-2 text-sm font-medium">Contraseña<div className="relative"><Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" /><input required name="password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" placeholder="Mínimo 8 caracteres" className={`${inputClass} pl-12 pr-12`} /><button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" aria-label="Mostrar u ocultar contraseña">{showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</button></div></label>
             <label className="block space-y-2 text-sm font-medium">Confirmar contraseña<div className="relative"><Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" /><input required name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" placeholder="Repetí tu contraseña" className={`${inputClass} pl-12 pr-12`} /><button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" aria-label="Mostrar u ocultar confirmación">{showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}</button></div></label>
             <label className="flex items-start gap-2 text-sm text-muted-foreground"><input required name="terms" type="checkbox" className="mt-1 h-4 w-4 accent-primary" /><span>Acepto los <button type="button" onClick={() => setTermsOpen(true)} className="text-primary hover:underline">términos y condiciones</button> y la política de privacidad.</span></label>

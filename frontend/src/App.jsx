@@ -5,9 +5,13 @@ import Info from "./pages/info";
 import Admin from "./pages/admin";
 import Caja from "./pages/caja";
 import Carga from "./pages/carga";
+import CargaResultado from "./pages/carga-resultado";
 import Escanear from "./pages/escanear";
+import Control from "./pages/control";
 import LoginAdmin from "./pages/loginAdmin";
 import LoginCaja from "./pages/loginCaja";
+import LoginSeguridad from "./pages/loginSeguridad";
+import AuthGoogleCallback from "./pages/auth-google-callback";
 
 function App() {
   return (
@@ -32,9 +36,13 @@ function App() {
         <Route path="/admin" element={<Admin />} />
         <Route path="/caja" element={<Caja />} />
         <Route path="/carga" element={<Carga />} />
+        <Route path="/carga/resultado" element={<CargaResultado />} />
         <Route path="/escaneartarjeta" element={<Escanear />} />
+        <Route path="/control" element={<Control />} />
         <Route path="/loginadmin" element={<LoginAdmin />} />
         <Route path="/logincaja" element={<LoginCaja />} />
+        <Route path="/loginseguridad" element={<LoginSeguridad />} />
+        <Route path="/auth/google/callback" element={<AuthGoogleCallback />} />
       </Routes>
     </>
   );

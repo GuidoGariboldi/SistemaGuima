@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 export class ApiError extends Error {
   status: number
@@ -19,8 +19,11 @@ export function setToken(token: string | null) {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken()
+  // FormData (subida de archivos): no seteamos Content-Type a mano — el
+  // navegador arma el boundary multipart solo, y si lo pisamos se rompe.
+  const esFormData = options.body instanceof FormData
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(esFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(options.headers as Record<string, string> | undefined),
   }
   if (token) headers.Authorization = `Bearer ${token}`
@@ -45,4 +48,5 @@ export const api = {
   patch: <T>(path: string, data?: unknown) =>
     request<T>(path, { method: 'PATCH', body: data ? JSON.stringify(data) : undefined }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  upload: <T>(path: string, formData: FormData) => request<T>(path, { method: 'POST', body: formData }),
 }

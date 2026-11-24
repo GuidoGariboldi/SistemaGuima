@@ -1,6 +1,7 @@
 import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { TarjetasService } from './tarjetas.service';
 import { CrearTarjetaDto } from './dto/crear-tarjeta.dto';
+import { CrearLoteDto } from './dto/crear-lote.dto';
 import { CargarSaldoDto } from './dto/cargar-saldo.dto';
 import { VincularTarjetaDto } from './dto/vincular-tarjeta.dto';
 import { PaginationDto } from '../common/dtos/pagination.dto';
@@ -21,12 +22,49 @@ export class TarjetasController {
     return this.tarjetasService.create(dto);
   }
 
-  // Va antes de ':cardUid' a propósito: si no, Nest interpretaría "mia"
-  // como si fuera un card_uid literal, porque las rutas se matchean en orden.
+  @Post('lote')
+  @Roles('admin')
+  crearLote(@Body() dto: CrearLoteDto) {
+    return this.tarjetasService.crearLote(dto);
+  }
+
+  // Van antes de ':cardUid' a propósito: si no, Nest interpretaría "mia" o
+  // "lote" como si fueran un card_uid literal, porque las rutas se
+  // matchean en orden.
   @Get('mia')
   @Roles('socio')
   miTarjeta(@CurrentUser() user: AuthUser) {
     return this.tarjetasService.findBySocio(user.id);
+  }
+
+  @Get('mia/movimientos')
+  @Roles('socio')
+  misMovimientos(@Query() pagination: PaginationDto, @CurrentUser() user: AuthUser) {
+    return this.tarjetasService.misMovimientos(user.id, pagination);
+  }
+
+  @Patch('mia/pausar')
+  @Roles('socio')
+  pausarMiTarjeta(@CurrentUser() user: AuthUser) {
+    return this.tarjetasService.pausar(user.id);
+  }
+
+  @Patch('mia/reactivar')
+  @Roles('socio')
+  reactivarMiTarjeta(@CurrentUser() user: AuthUser) {
+    return this.tarjetasService.reactivar(user.id);
+  }
+
+  @Patch('mia/reportar-perdida')
+  @Roles('socio')
+  reportarPerdida(@CurrentUser() user: AuthUser) {
+    return this.tarjetasService.reportarPerdida(user.id);
+  }
+
+  @Get()
+  @Roles('admin', 'caja')
+  findAll(@Query() pagination: PaginationDto) {
+    return this.tarjetasService.findAll(pagination);
   }
 
   @Get(':cardUid')
@@ -48,7 +86,7 @@ export class TarjetasController {
     if (!socioId) {
       throw new BadRequestException('Falta indicar a qué socio vincular la tarjeta');
     }
-    return this.tarjetasService.vincular(cardUid, { socioId });
+    return this.tarjetasService.vincular(cardUid, { socioId }, user.rol);
   }
 
   @Post(':cardUid/cargar')

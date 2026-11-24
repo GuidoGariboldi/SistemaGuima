@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { Pool } from 'pg';
 import { PG_POOL } from '../database/database.module';
 import { LoginDto } from './dto/login.dto';
+import { GoogleUser } from './google.strategy';
 
 @Injectable()
 export class AuthService {
@@ -51,7 +52,42 @@ export class AuthService {
     throw new UnauthorizedException('Credenciales incorrectas');
   }
 
-  private firmar(id: string, email: string, rol: 'admin' | 'caja' | 'socio') {
+  // Login/registro automático con Google: si ya existe un socio con ese
+  // email lo logueamos (y le linkeamos el google_id si todavía no lo tenía,
+  // por si se había registrado antes con email/contraseña); si no existe,
+  // lo creamos en el momento sin pedirle contraseña ni fecha de nacimiento.
+  async loginConGoogle(googleUser: GoogleUser) {
+    if (!googleUser.email) {
+      throw new UnauthorizedException('Tu cuenta de Google no tiene un email disponible');
+    }
+
+    const existente = await this.pool.query(
+      `SELECT id, email, google_id FROM socios WHERE email = $1`,
+      [googleUser.email],
+    );
+
+    if (existente.rowCount! > 0) {
+      const socio = existente.rows[0];
+      if (!socio.google_id) {
+        await this.pool.query(`UPDATE socios SET google_id = $1 WHERE id = $2`, [
+          googleUser.googleId,
+          socio.id,
+        ]);
+      }
+      return this.firmar(socio.id, socio.email, 'socio');
+    }
+
+    const creado = await this.pool.query(
+      `INSERT INTO socios (nombre, apellido, email, google_id)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, email`,
+      [googleUser.nombre, googleUser.apellido, googleUser.email, googleUser.googleId],
+    );
+    const socio = creado.rows[0];
+    return this.firmar(socio.id, socio.email, 'socio');
+  }
+
+  private firmar(id: string, email: string, rol: 'admin' | 'caja' | 'seguridad' | 'socio') {
     const payload = { sub: id, email, rol };
     return {
       accessToken: this.jwtService.sign(payload),

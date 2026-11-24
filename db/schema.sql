@@ -15,10 +15,15 @@ create table socios (
   nombre text not null,
   apellido text not null,
   email text unique not null,
-  password_hash text not null,
-  fecha_nac date not null,
+  password_hash text,                                 -- null si el socio se registró con Google
+  fecha_nac date,                                      -- null si vino de Google (no lo pedimos ahí)
   telefono text,
   foto_url text,
+  google_id text unique,                              -- id de cuenta de Google, si inició sesión así
+  dni text unique,                                     -- obligatorio para comprar entradas; Google no lo provee
+  bloqueado boolean not null default false,            -- baneo de acceso al boliche (ej. pelea)
+  motivo_bloqueo text,
+  bloqueado_hasta date,                                -- null = indefinido
   member_number text unique,
   nivel text not null default 'General' check (nivel in ('General','VIP','Premium')),
   puntos int not null default 0,
@@ -45,7 +50,7 @@ create table staff (
   apellido text not null,
   email text unique not null,
   password_hash text not null,
-  rol text not null check (rol in ('admin','caja')),
+  rol text not null check (rol in ('admin','caja','seguridad')),
   activo boolean not null default true,
   created_at timestamptz not null default now()
 );
@@ -60,7 +65,7 @@ create table tarjetas (
   socio_id uuid references socios,                   -- null = tarjeta sin vincular
   saldo numeric(12,2) not null default 0 check (saldo >= 0),
   nivel text not null default 'General',
-  estado text not null default 'sin_asignar' check (estado in ('sin_asignar','activa','bloqueada')),
+  estado text not null default 'sin_asignar' check (estado in ('sin_asignar','activa','bloqueada','perdida')),
   created_at timestamptz not null default now()
 );
 
@@ -294,9 +299,14 @@ create or replace function fn_cargar_saldo(p_card_uid text, p_monto numeric, p_m
 returns tarjetas language plpgsql as $$
 declare t tarjetas;
 begin
+  select * into t from tarjetas where card_uid = p_card_uid for update;
+  if not found then raise exception 'Tarjeta % no existe', p_card_uid; end if;
+  if t.estado != 'activa' then
+    raise exception 'Tarjeta % no está activa (estado: %)', p_card_uid, t.estado;
+  end if;
+
   update tarjetas set saldo = saldo + p_monto
    where card_uid = p_card_uid returning * into t;
-  if not found then raise exception 'Tarjeta % no existe', p_card_uid; end if;
 
   insert into movimientos_saldo (tarjeta_id, tipo, monto, medio_pago, referencia_pago)
   values (t.id, 'carga', p_monto, p_medio, p_ref);
@@ -343,8 +353,12 @@ begin
   update ventas set total = v_total where id = v_venta;
 
   if p_medio = 'saldo' and p_card_uid is not null then
-    update tarjetas set saldo = saldo - v_total where card_uid = p_card_uid returning * into v_tarjeta;
+    select * into v_tarjeta from tarjetas where card_uid = p_card_uid for update;
     if not found then raise exception 'Tarjeta % no existe', p_card_uid; end if;
+    if v_tarjeta.estado != 'activa' then
+      raise exception 'Tarjeta % no está activa (estado: %)', p_card_uid, v_tarjeta.estado;
+    end if;
+    update tarjetas set saldo = saldo - v_total where card_uid = p_card_uid returning * into v_tarjeta;
     insert into movimientos_saldo (tarjeta_id, tipo, monto, medio_pago, venta_id, cajero_id)
     values (v_tarjeta.id, 'consumo', v_total, 'saldo', v_venta, p_cajero);
   end if;

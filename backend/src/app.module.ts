@@ -14,6 +14,8 @@ import { SociosModule } from './socios/socios.module';
 import { EventosModule } from './eventos/eventos.module';
 import { TrasladosModule } from './traslados/traslados.module';
 import { ReportesModule } from './reportes/reportes.module';
+import { PagosModule } from './pagos/pagos.module';
+import { StaffModule } from './staff/staff.module';
 
 @Module({
   imports: [
@@ -29,6 +31,8 @@ import { ReportesModule } from './reportes/reportes.module';
     EventosModule,
     TrasladosModule,
     ReportesModule,
+    PagosModule,
+    StaffModule,
   ],
   controllers: [AppController],
   providers: [AppService],

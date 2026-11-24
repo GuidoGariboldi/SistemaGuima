@@ -81,11 +81,11 @@ export function EventsSection() {
                 transition={{ delay: index * 0.1 }}
                 className="group relative glass rounded-2xl overflow-hidden card-3d"
               >
-                <div className="relative h-48 overflow-hidden">
+                <div className="relative h-48 overflow-hidden bg-background">
                   <img
                     src={event.imagen_url || IMAGEN_DEFAULT}
                     alt={event.nombre}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
                   {event.destacado && (

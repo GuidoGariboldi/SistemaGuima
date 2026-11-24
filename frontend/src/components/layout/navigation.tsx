@@ -19,13 +19,22 @@ interface NavigationProps {
   onLogin: () => void
   onRegister: () => void
   isAuthenticated: boolean
+  nombreCompleto?: string
   onProfile: () => void
   onLogout: () => void
 }
 
-export function Navigation({ onLogin, onRegister, isAuthenticated, onProfile, onLogout }: NavigationProps) {
+export function Navigation({ onLogin, onRegister, isAuthenticated, nombreCompleto, onProfile, onLogout }: NavigationProps) {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const iniciales = nombreCompleto
+    ? nombreCompleto
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((parte) => parte[0].toUpperCase())
+        .join('')
+    : ''
 
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -92,8 +101,8 @@ export function Navigation({ onLogin, onRegister, isAuthenticated, onProfile, on
             {isAuthenticated ? (
               <>
                 <button type="button" onClick={onProfile} className="flex items-center gap-2 rounded-full border border-primary/30 px-3 py-1.5 transition hover:bg-primary/10">
-                  <span className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">JP</span>
-                  <span className="text-sm font-medium">Juan Pérez</span>
+                  <span className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">{iniciales}</span>
+                  <span className="text-sm font-medium">{nombreCompleto}</span>
                 </button>
                 <Button type="button" variant="ghost" onClick={onLogout} className="text-foreground/70">Cerrar sesión</Button>
               </>
@@ -205,8 +214,8 @@ export function Navigation({ onLogin, onRegister, isAuthenticated, onProfile, on
                       onClick={() => { setIsMobileMenuOpen(false); onProfile() }}
                       className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 text-left transition hover:bg-primary/10"
                     >
-                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-red-700 font-bold text-primary-foreground shadow-[0_0_14px_hsl(var(--primary)/0.5)]">JP</span>
-                      <span className="truncate font-semibold">Juan Pérez</span>
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-red-700 font-bold text-primary-foreground shadow-[0_0_14px_hsl(var(--primary)/0.5)]">{iniciales}</span>
+                      <span className="truncate font-semibold">{nombreCompleto}</span>
                     </button>
                     <button
                       type="button"
