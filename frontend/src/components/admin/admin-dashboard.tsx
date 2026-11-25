@@ -1,18 +1,20 @@
 'use client'
 
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
-import { ArrowUpRight, BarChart3, Calendar, ChevronRight, CreditCard, Home, Menu, Package, Plus, Search, Settings, ShieldCheck, ShoppingBag, Ticket, Trash2, UserCog, Users, X } from 'lucide-react'
+import { ArrowUpRight, BarChart3, Calendar, ChevronRight, CreditCard, Download, FileText, Home, Menu, Package, Plus, Search, Settings, ShieldCheck, ShoppingBag, Ticket, Trash2, UserCog, Users, X } from 'lucide-react'
 import { sileo } from 'sileo'
 import { api, ApiError } from '@/lib/api'
+import { exportarReportePDF } from '@/lib/pdf'
 
 const money = (value: number) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(value)
 const fechaCorta = (iso?: string) => iso ? new Date(iso).toLocaleDateString('es-AR') : ''
+const fechaHora = (iso?: string) => iso ? new Date(iso).toLocaleString('es-AR') : ''
 
-type Section = 'Resumen' | 'Estadísticas' | 'Eventos' | 'Entradas' | 'Bar & productos' | 'Usuarios' | 'Tarjetas' | 'Personal' | 'Configuración'
+type Section = 'Resumen' | 'Estadísticas' | 'Informes' | 'Eventos' | 'Entradas' | 'Bar & productos' | 'Usuarios' | 'Tarjetas' | 'Personal' | 'Configuración'
 const nav: { label: Section; icon: typeof Home; hint: string }[] = [
-  { label: 'Resumen', icon: Home, hint: 'Vista general' }, { label: 'Estadísticas', icon: BarChart3, hint: 'Métricas y análisis' }, { label: 'Eventos', icon: Calendar, hint: 'Agenda y shows' }, { label: 'Entradas', icon: Ticket, hint: 'Tipos y ventas' }, { label: 'Bar & productos', icon: ShoppingBag, hint: 'Carta y stock' }, { label: 'Usuarios', icon: Users, hint: 'Comunidad La Bastarda' }, { label: 'Tarjetas', icon: CreditCard, hint: 'Tarjetas La Bastarda' }, { label: 'Personal', icon: UserCog, hint: 'Cuentas de staff' },
+  { label: 'Resumen', icon: Home, hint: 'Vista general' }, { label: 'Estadísticas', icon: BarChart3, hint: 'Métricas y análisis' }, { label: 'Informes', icon: FileText, hint: 'Cierres de caja y reportes' }, { label: 'Eventos', icon: Calendar, hint: 'Agenda y shows' }, { label: 'Entradas', icon: Ticket, hint: 'Tipos y ventas' }, { label: 'Bar & productos', icon: ShoppingBag, hint: 'Carta y stock' }, { label: 'Usuarios', icon: Users, hint: 'Comunidad La Bastarda' }, { label: 'Tarjetas', icon: CreditCard, hint: 'Tarjetas La Bastarda' }, { label: 'Personal', icon: UserCog, hint: 'Cuentas de staff' },
 ]
-const titles: Record<Section, string> = { Resumen: 'Resumen general', Estadísticas: 'Estadísticas', Eventos: 'Eventos', Entradas: 'Entradas y ventas', 'Bar & productos': 'Bar & productos', Usuarios: 'Usuarios', Tarjetas: 'Tarjetas', Personal: 'Personal', Configuración: 'Configuración' }
+const titles: Record<Section, string> = { Resumen: 'Resumen general', Estadísticas: 'Estadísticas', Informes: 'Informes', Eventos: 'Eventos', Entradas: 'Entradas y ventas', 'Bar & productos': 'Bar & productos', Usuarios: 'Usuarios', Tarjetas: 'Tarjetas', Personal: 'Personal', Configuración: 'Configuración' }
 
 export function AdminDashboard() {
   const [section, setSection] = useState<Section>('Resumen')
@@ -27,7 +29,7 @@ export function AdminDashboard() {
       <nav className="space-y-1.5 p-5 pt-8" aria-label="Navegación administrativa">{nav.map(({ label, icon: Icon, hint }) => <button key={label} onClick={() => go(label)} className={`group flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-all ${section === label ? 'bg-primary text-primary-foreground shadow-[0_0_24px_rgba(168,85,247,0.28)]' : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'}`}><span className={`flex size-9 items-center justify-center rounded-lg ${section === label ? 'bg-primary-foreground/15' : 'bg-muted/60 group-hover:bg-primary/10'}`}><Icon size={17}/></span><span className="flex-1"><span className="block text-sm font-medium">{label}</span><span className={`block text-[10px] ${section === label ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>{hint}</span></span>{section === label && <ChevronRight size={15}/>}</button>)}</nav>
       <div className="mt-auto space-y-4 border-t border-border/70 p-5"><button onClick={() => go('Configuración')} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm transition-colors ${section === 'Configuración' ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted'}`}><Settings size={18}/>Configuración</button><div className="flex items-center gap-3 rounded-xl bg-muted/50 p-3"><div className="flex size-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-xs font-bold">AD</div><div className="min-w-0"><p className="truncate text-xs font-medium">Admin La Bastarda</p><p className="text-[10px] text-muted-foreground">Super administrador</p></div></div></div>
     </aside>
-    {openMenu && <button aria-label="Cerrar menú" className="fixed inset-0 z-40 bg-background/70 backdrop-blur-sm lg:hidden" onClick={() => setOpenMenu(false)}/>}<main className="min-w-0 lg:pl-72"><header className="sticky top-0 z-30 flex min-h-20 items-center justify-between gap-3 border-b border-border/70 bg-background/80 px-4 py-4 backdrop-blur-xl sm:min-h-24 sm:px-10"><div className="flex min-w-0 items-center gap-2 sm:gap-4"><button aria-label="Abrir menú" className="shrink-0 rounded-lg p-2 hover:bg-muted lg:hidden" onClick={() => setOpenMenu(true)}><Menu size={22}/></button><div className="min-w-0"><p className="truncate text-[9px] font-semibold uppercase tracking-[0.14em] text-primary sm:text-[10px] sm:tracking-[0.22em]">Miércoles, 16 de septiembre de 2026</p><h1 className="mt-1 truncate font-serif text-xl sm:text-2xl">Buen día, Admin.</h1></div></div><div className="flex shrink-0 items-center gap-2 sm:gap-3"><div className="relative hidden md:block"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar..." className="h-10 w-52 rounded-lg border border-border bg-card pl-9 pr-3 text-xs outline-none transition focus:border-primary"/></div><a href="/" className="flex items-center gap-2 rounded-lg border border-border px-2.5 py-2.5 text-xs text-muted-foreground transition hover:border-primary hover:text-foreground sm:px-3"><ArrowUpRight size={14}/><span className="hidden sm:inline">Ver sitio</span></a></div></header><div className="mx-auto w-full max-w-[1500px] min-w-0 space-y-6 overflow-hidden p-3 sm:space-y-8 sm:p-10">{section === 'Resumen' ? <Summary onGo={go}/> : section === 'Estadísticas' ? <Statistics/> : section === 'Configuración' ? <Config onFlash={flash}/> : section === 'Eventos' ? <EventosManager/> : section === 'Bar & productos' ? <ProductosManager/> : section === 'Usuarios' ? <UsuariosList/> : section === 'Tarjetas' ? <TarjetasManager/> : section === 'Personal' ? <PersonalManager/> : <EntradasManager/>}</div></main></div>
+    {openMenu && <button aria-label="Cerrar menú" className="fixed inset-0 z-40 bg-background/70 backdrop-blur-sm lg:hidden" onClick={() => setOpenMenu(false)}/>}<main className="min-w-0 lg:pl-72"><header className="sticky top-0 z-30 flex min-h-20 items-center justify-between gap-3 border-b border-border/70 bg-background/80 px-4 py-4 backdrop-blur-xl sm:min-h-24 sm:px-10"><div className="flex min-w-0 items-center gap-2 sm:gap-4"><button aria-label="Abrir menú" className="shrink-0 rounded-lg p-2 hover:bg-muted lg:hidden" onClick={() => setOpenMenu(true)}><Menu size={22}/></button><div className="min-w-0"><p className="truncate text-[9px] font-semibold uppercase tracking-[0.14em] text-primary sm:text-[10px] sm:tracking-[0.22em]">Miércoles, 16 de septiembre de 2026</p><h1 className="mt-1 truncate font-serif text-xl sm:text-2xl">Buen día, Admin.</h1></div></div><div className="flex shrink-0 items-center gap-2 sm:gap-3"><div className="relative hidden md:block"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar..." className="h-10 w-52 rounded-lg border border-border bg-card pl-9 pr-3 text-xs outline-none transition focus:border-primary"/></div><a href="/" className="flex items-center gap-2 rounded-lg border border-border px-2.5 py-2.5 text-xs text-muted-foreground transition hover:border-primary hover:text-foreground sm:px-3"><ArrowUpRight size={14}/><span className="hidden sm:inline">Ver sitio</span></a></div></header><div className="mx-auto w-full max-w-[1500px] min-w-0 space-y-6 overflow-hidden p-3 sm:space-y-8 sm:p-10">{section === 'Resumen' ? <Summary onGo={go}/> : section === 'Estadísticas' ? <Statistics/> : section === 'Informes' ? <InformesManager/> : section === 'Configuración' ? <Config onFlash={flash}/> : section === 'Eventos' ? <EventosManager/> : section === 'Bar & productos' ? <ProductosManager/> : section === 'Usuarios' ? <UsuariosList/> : section === 'Tarjetas' ? <TarjetasManager/> : section === 'Personal' ? <PersonalManager/> : <EntradasManager/>}</div></main></div>
 }
 
 function StatCard({ label, value, caption }: { label: string; value: string; caption: string }) { return <div className="group relative min-w-0 overflow-hidden rounded-2xl border border-border/70 bg-card p-4 sm:p-5 transition hover:-translate-y-1 hover:border-primary/40"><div className="absolute -right-5 -top-5 size-20 rounded-full bg-primary/10 blur-2xl"/><div className="relative"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-4 text-2xl font-semibold tracking-tight">{value}</p><p className="mt-2 text-[11px] text-primary">{caption}</p></div></div> }
@@ -116,6 +118,122 @@ function Statistics() {
         </div>
       )}
     </div>
+  </div>
+}
+
+type CierreCaja = {
+  id: string; numero: number; caja_nombre: string; abierto_at: string; cerrado_at: string
+  fondo_inicial: number; total_ventas: number; cantidad_ventas: number
+  total_efectivo: number; total_mp: number; total_tarjeta: number; total_transferencia: number; total_saldo: number
+  efectivo_declarado: number | null; diferencia: number | null
+}
+
+function ReportCard({ title, subtitle, onExport, disabled, children }: { title: string; subtitle?: string; onExport: () => void; disabled?: boolean; children: React.ReactNode }) {
+  return <div className="overflow-hidden rounded-2xl border border-border/70 bg-card">
+    <div className="flex items-center justify-between gap-3 border-b border-border/70 p-5">
+      <div><h3 className="font-medium">{title}</h3>{subtitle && <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>}</div>
+      <button onClick={onExport} disabled={disabled} className="flex shrink-0 items-center gap-2 rounded-lg border border-primary/40 px-3 py-2 text-xs font-medium text-primary transition hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-40"><Download size={14}/>PDF</button>
+    </div>
+    {children}
+  </div>
+}
+
+function InformesManager() {
+  const [cierres, setCierres] = useState<CierreCaja[]>([])
+  const [ranking, setRanking] = useState<any[]>([])
+  const [medioPago, setMedioPago] = useState<any[]>([])
+  const [aforo, setAforo] = useState<any[]>([])
+  const [rutas, setRutas] = useState<any[]>([])
+  const [saldoTarjetas, setSaldoTarjetas] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    Promise.all([
+      api.get<CierreCaja[]>('/reportes/cierres-caja').catch(() => []),
+      api.get<any[]>('/reportes/ranking-productos?limite=15').catch(() => []),
+      api.get<any[]>('/reportes/ventas-por-medio-pago').catch(() => []),
+      api.get<any[]>('/reportes/aforo-eventos').catch(() => []),
+      api.get<any[]>('/reportes/ocupacion-rutas').catch(() => []),
+      api.get<any>('/reportes/saldo-tarjetas').catch(() => null),
+    ]).then(([c, r, m, a, ru, s]) => { setCierres(c); setRanking(r); setMedioPago(m); setAforo(a); setRutas(ru); setSaldoTarjetas(s) }).finally(() => setLoading(false))
+  }, [])
+
+  const exportarCierres = () => exportarReportePDF({
+    titulo: 'Cierres de caja (Z)',
+    columnas: ['Fecha', 'Caja', 'Turno', 'Ventas', 'Cant.', 'Efectivo', 'Saldo', 'Declarado', 'Diferencia'],
+    filas: cierres.map((c) => [fechaHora(c.cerrado_at), c.caja_nombre, `#${c.numero}`, money(c.total_ventas), String(c.cantidad_ventas), money(c.total_efectivo), money(c.total_saldo), money(c.efectivo_declarado ?? 0), money(c.diferencia ?? 0)]),
+    nombreArchivo: 'cierres-de-caja',
+  })
+  const exportarRanking = () => exportarReportePDF({
+    titulo: 'Ranking de productos',
+    columnas: ['Producto', 'Unidades vendidas', 'Total facturado'],
+    filas: ranking.map((p) => [p.nombre, String(p.cantidad_vendida), money(p.total_facturado)]),
+    nombreArchivo: 'ranking-productos',
+  })
+  const exportarMedioPago = () => exportarReportePDF({
+    titulo: 'Ventas por medio de pago',
+    columnas: ['Medio de pago', 'Cantidad', 'Total'],
+    filas: medioPago.map((m) => [m.medio_pago, String(m.cantidad), money(m.total)]),
+    nombreArchivo: 'ventas-por-medio-de-pago',
+  })
+  const exportarAforo = () => exportarReportePDF({
+    titulo: 'Aforo por evento',
+    columnas: ['Evento', 'Tipo', 'Vendidas', 'Cupo', '% ocupado'],
+    filas: aforo.map((a) => [a.evento_nombre, a.tipo_nombre, String(a.vendidas), String(a.cupo), `${a.porcentaje_ocupado}%`]),
+    nombreArchivo: 'aforo-eventos',
+  })
+  const exportarRutas = () => exportarReportePDF({
+    titulo: 'Ocupación de rutas',
+    columnas: ['Ruta', 'Reservados', 'Asientos', '% ocupado'],
+    filas: rutas.map((r) => [`${r.origen} → ${r.destino}`, String(r.reservados), String(r.asientos), `${r.porcentaje_ocupado}%`]),
+    nombreArchivo: 'ocupacion-rutas',
+  })
+
+  if (loading) return <div className="p-12 text-center text-sm text-muted-foreground">Cargando…</div>
+
+  return <div className="space-y-8">
+    <div><p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-primary">Centro de control / informes</p><h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">Informes<span className="text-primary">.</span></h2><p className="mt-3 text-sm text-muted-foreground">Cierres de caja y reportes reales, exportables en PDF.</p></div>
+
+    <div className="grid gap-3 sm:grid-cols-2">
+      <StatCard label="Saldo total en tarjetas" value={saldoTarjetas ? money(saldoTarjetas.saldoTotal) : '—'} caption={saldoTarjetas ? `${saldoTarjetas.tarjetasConSaldo} tarjetas con saldo` : 'Sin datos'}/>
+      <StatCard label="Turnos cerrados" value={String(cierres.length)} caption="Historial completo"/>
+    </div>
+
+    <ReportCard title="Cierres de caja (cierre Z)" subtitle="Un renglón por cada turno cerrado, con el desglose de cómo entró la plata." onExport={exportarCierres} disabled={!cierres.length}>
+      {cierres.length === 0 ? <div className="p-8 text-center text-sm text-muted-foreground">Todavía no se cerró ningún turno.</div> : (
+        <div className="divide-y divide-border/60">{cierres.map((c) => <div key={c.id} className="p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2"><h4 className="font-medium">{c.caja_nombre} · Turno #{c.numero}</h4><span className="text-xs text-muted-foreground">{fechaHora(c.cerrado_at)}</span></div>
+          <div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-muted-foreground sm:grid-cols-4">
+            <span>Fondo inicial: <strong className="text-foreground">{money(c.fondo_inicial)}</strong></span>
+            <span>Ventas: <strong className="text-foreground">{money(c.total_ventas)} ({c.cantidad_ventas})</strong></span>
+            <span>Efectivo: <strong className="text-foreground">{money(c.total_efectivo)}</strong></span>
+            <span>Saldo (tarjeta): <strong className="text-foreground">{money(c.total_saldo)}</strong></span>
+            <span>Declarado: <strong className="text-foreground">{money(c.efectivo_declarado ?? 0)}</strong></span>
+            <span className={c.diferencia && c.diferencia !== 0 ? 'text-destructive' : ''}>Diferencia: <strong>{money(c.diferencia ?? 0)}</strong></span>
+          </div>
+        </div>)}</div>
+      )}
+    </ReportCard>
+
+    <div className="grid gap-4 lg:grid-cols-2">
+      <ReportCard title="Ranking de productos" onExport={exportarRanking} disabled={!ranking.length}>
+        {ranking.length === 0 ? <div className="p-8 text-center text-sm text-muted-foreground">Sin ventas todavía.</div> : <div className="divide-y divide-border/60">{ranking.map((p, i) => <div key={p.producto_id ?? i} className="flex items-center justify-between p-4 text-sm"><span className="truncate">{i + 1}. {p.nombre}</span><span className="shrink-0 text-primary">{p.cantidad_vendida}u · {money(p.total_facturado)}</span></div>)}</div>}
+      </ReportCard>
+
+      <ReportCard title="Ventas por medio de pago" onExport={exportarMedioPago} disabled={!medioPago.length}>
+        {medioPago.length === 0 ? <div className="p-8 text-center text-sm text-muted-foreground">Sin ventas todavía.</div> : <div className="divide-y divide-border/60">{medioPago.map((m) => <div key={m.medio_pago} className="flex items-center justify-between p-4 text-sm"><span className="capitalize">{m.medio_pago}</span><span className="text-primary">{m.cantidad} ventas · {money(m.total)}</span></div>)}</div>}
+      </ReportCard>
+    </div>
+
+    <ReportCard title="Aforo por evento" subtitle="Entradas vendidas sobre el cupo de cada tipo." onExport={exportarAforo} disabled={!aforo.length}>
+      {aforo.length === 0 ? <div className="p-8 text-center text-sm text-muted-foreground">Todavía no hay tipos de entrada cargados.</div> : <div className="divide-y divide-border/60">{aforo.map((a) => <div key={a.tipo_entrada_id} className="flex items-center justify-between p-4 text-sm"><span>{a.evento_nombre} · {a.tipo_nombre}</span><span className="text-primary">{a.vendidas}/{a.cupo} · {a.porcentaje_ocupado}%</span></div>)}</div>}
+    </ReportCard>
+
+    {rutas.length > 0 && (
+      <ReportCard title="Ocupación de rutas" onExport={exportarRutas}>
+        <div className="divide-y divide-border/60">{rutas.map((r) => <div key={r.id} className="flex items-center justify-between p-4 text-sm"><span>{r.origen} → {r.destino}</span><span className="text-primary">{r.reservados}/{r.asientos} · {r.porcentaje_ocupado}%</span></div>)}</div>
+      </ReportCard>
+    )}
   </div>
 }
 

@@ -51,7 +51,6 @@ const quickLinks = [
   { name: 'Eventos', href: '#eventos' },
   { name: 'Entradas', href: '#entradas' },
   { name: 'La Barra', href: '#barra' },
-  { name: 'Mesas', href: '#mesas' },
   { name: 'Info', href: '/info' },
 ]
 

@@ -4,7 +4,6 @@ import { HeroSection } from '@/components/public/hero-section'
 import { EventsSection } from '@/components/public/events-section'
 import { TicketsSection } from '@/components/public/tickets-section'
 import { BarSection } from '@/components/public/bar-section'
-import { TableReservationsSection } from '@/components/public/table-reservations-section'
 import { Footer } from '@/components/layout/footer'
 import { AuthModals } from '@/components/public/auth-modals'
 import { UserProfile } from '@/components/public/user-profile'
@@ -41,7 +40,6 @@ export default function TeosHome() {
       <EventsSection />
       <TicketsSection />
       <BarSection />
-      <TableReservationsSection />
       <Footer />
 
       <AuthModals

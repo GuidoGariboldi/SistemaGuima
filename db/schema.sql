@@ -114,6 +114,10 @@ create table turnos_caja (
   unique (caja_id, numero)
 );
 
+-- Va acá (y no en la definición de movimientos_saldo, más arriba) porque
+-- turnos_caja todavía no existía en ese punto del script.
+alter table movimientos_saldo add column turno_id uuid references turnos_caja;
+
 -- ============================================================
 -- 4. POS / BAR
 -- ============================================================
@@ -294,8 +298,14 @@ insert into configuracion (key, value) values
 -- 9. OPERACIONES DE PLATA (RPC)
 -- ============================================================
 
--- Cargar saldo a una tarjeta (terminal /carga tras confirmar el pago)
-create or replace function fn_cargar_saldo(p_card_uid text, p_monto numeric, p_medio text, p_ref text)
+-- Cargar saldo a una tarjeta (terminal /carga tras confirmar el pago, o un
+-- cajero cargando efectivo). turno_id/cajero_id solo se completan cuando
+-- la carga la hace un cajero con turno abierto — así el cierre de caja
+-- puede sumar el efectivo real que entró por cargas.
+create or replace function fn_cargar_saldo(
+  p_card_uid text, p_monto numeric, p_medio text, p_ref text,
+  p_turno_id uuid default null, p_cajero_id uuid default null
+)
 returns tarjetas language plpgsql as $$
 declare t tarjetas;
 begin
@@ -308,8 +318,8 @@ begin
   update tarjetas set saldo = saldo + p_monto
    where card_uid = p_card_uid returning * into t;
 
-  insert into movimientos_saldo (tarjeta_id, tipo, monto, medio_pago, referencia_pago)
-  values (t.id, 'carga', p_monto, p_medio, p_ref);
+  insert into movimientos_saldo (tarjeta_id, tipo, monto, medio_pago, referencia_pago, turno_id, cajero_id)
+  values (t.id, 'carga', p_monto, p_medio, p_ref, p_turno_id, p_cajero_id);
 
   return t;
 end $$;
@@ -381,7 +391,12 @@ begin
     estado = 'cerrado',
     cantidad_ventas = (select count(*) from ventas where turno_id = p_turno_id and estado = 'completada'),
     total_ventas = (select coalesce(sum(total), 0) from ventas where turno_id = p_turno_id and estado = 'completada'),
-    total_efectivo = (select coalesce(sum(total), 0) from ventas where turno_id = p_turno_id and medio_pago = 'efectivo' and estado = 'completada'),
+    -- Las ventas ya no se cobran en efectivo (todo se paga con saldo de
+    -- tarjeta); el efectivo real que maneja el cajero entra por las cargas.
+    total_efectivo = (
+      (select coalesce(sum(total), 0) from ventas where turno_id = p_turno_id and medio_pago = 'efectivo' and estado = 'completada')
+      + (select coalesce(sum(monto), 0) from movimientos_saldo where turno_id = p_turno_id and tipo = 'carga' and medio_pago = 'efectivo')
+    ),
     total_mp = (select coalesce(sum(total), 0) from ventas where turno_id = p_turno_id and medio_pago = 'mercadopago' and estado = 'completada'),
     total_tarjeta = (select coalesce(sum(total), 0) from ventas where turno_id = p_turno_id and medio_pago = 'tarjeta' and estado = 'completada'),
     total_transferencia = (select coalesce(sum(total), 0) from ventas where turno_id = p_turno_id and medio_pago = 'transferencia' and estado = 'completada'),

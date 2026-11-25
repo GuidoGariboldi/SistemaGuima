@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Pool } from 'pg';
 import { PG_POOL } from '../database/database.module';
 import { RegistrarVentaDto } from './dto/registrar-venta.dto';
@@ -13,21 +13,37 @@ export class VentasService {
       throw new BadRequestException('Pagar con saldo requiere el cardUid de la tarjeta');
     }
 
-    const result = await this.pool.query(
-      `SELECT fn_registrar_venta($1, $2, $3, $4, $5::jsonb, $6) AS venta_id`,
-      [
-        cajeroId,
-        dto.cajaId,
-        dto.turnoId,
-        dto.medioPago,
-        JSON.stringify(
-          dto.items.map((item) => ({ producto_id: item.productoId, cantidad: item.cantidad })),
-        ),
-        dto.cardUid ?? null,
-      ],
-    );
+    try {
+      const result = await this.pool.query(
+        `SELECT fn_registrar_venta($1, $2, $3, $4, $5::jsonb, $6) AS venta_id`,
+        [
+          cajeroId,
+          dto.cajaId,
+          dto.turnoId,
+          dto.medioPago,
+          JSON.stringify(
+            dto.items.map((item) => ({ producto_id: item.productoId, cantidad: item.cantidad })),
+          ),
+          dto.cardUid ?? null,
+        ],
+      );
 
-    return this.findOne(result.rows[0].venta_id);
+      return this.findOne(result.rows[0].venta_id);
+    } catch (error: any) {
+      if (error.code === '23514' && error.constraint === 'tarjetas_saldo_check') {
+        throw new BadRequestException('La tarjeta no tiene saldo suficiente para esta venta');
+      }
+      if (error.message?.includes('no existe')) {
+        throw new NotFoundException(error.message);
+      }
+      if (error.message?.includes('no está activa')) {
+        throw new ConflictException(error.message);
+      }
+      if (error.message?.includes('Sin stock')) {
+        throw new BadRequestException(error.message);
+      }
+      throw error;
+    }
   }
 
   async findOne(id: string) {

@@ -76,7 +76,7 @@ export function ControlAcceso() {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <button onClick={() => { setToken(null); navigate('/loginseguridad', { replace: true }) }} className="fixed right-4 top-4 flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs text-muted-foreground hover:text-foreground"><LogOut size={14} />Salir</button>
+      <button onClick={() => { setToken(null); navigate('/', { replace: true }) }} className="fixed right-4 top-4 flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs text-muted-foreground hover:text-foreground"><LogOut size={14} />Salir</button>
       <section className="mx-auto flex min-h-screen w-full max-w-xl flex-col items-center justify-center px-4 py-10">
         <h1 className="text-center text-3xl font-semibold tracking-tight">Control de acceso</h1>
         <p className="mt-2 text-center text-sm text-muted-foreground">Pedí el DNI y escaneá o escribilo acá.</p>

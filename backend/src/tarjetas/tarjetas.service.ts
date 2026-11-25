@@ -171,15 +171,22 @@ export class TarjetasService {
     return this.movimientos(tarjeta.card_uid, pagination);
   }
 
-  async cargarSaldo(cardUid: string, dto: CargarSaldoDto) {
-    const result = await this.pool.query(
-      `SELECT * FROM fn_cargar_saldo($1, $2, $3, $4)`,
-      [cardUid, dto.monto, dto.medioPago, dto.referenciaPago ?? null],
-    );
-    if (result.rowCount === 0) {
-      throw new NotFoundException(`Tarjeta ${cardUid} no encontrada`);
+  async cargarSaldo(cardUid: string, dto: CargarSaldoDto, cajeroId?: string) {
+    try {
+      const result = await this.pool.query(
+        `SELECT * FROM fn_cargar_saldo($1, $2, $3, $4, $5, $6)`,
+        [cardUid, dto.monto, dto.medioPago, dto.referenciaPago ?? null, dto.turnoId ?? null, cajeroId ?? null],
+      );
+      return this.mapTarjeta(result.rows[0]);
+    } catch (error: any) {
+      if (error.message?.includes('no existe')) {
+        throw new NotFoundException(`Tarjeta ${cardUid} no encontrada`);
+      }
+      if (error.message?.includes('no está activa')) {
+        throw new ConflictException(error.message);
+      }
+      throw error;
     }
-    return this.mapTarjeta(result.rows[0]);
   }
 
   async movimientos(cardUid: string, pagination: PaginationDto) {

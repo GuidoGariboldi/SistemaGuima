@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Menu, X, Home, CalendarDays, Ticket, Wine, Armchair, Info as InfoIcon, ChevronRight, LogOut } from 'lucide-react'
+import { Menu, X, Home, CalendarDays, Ticket, Wine, Info as InfoIcon, ChevronRight, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const navLinks = [
@@ -11,7 +11,6 @@ const navLinks = [
   { name: 'Eventos', href: '#eventos', icon: CalendarDays },
   { name: 'Entradas', href: '#entradas', icon: Ticket },
   { name: 'Barra', href: '#barra', icon: Wine },
-  { name: 'Mesas', href: '#mesas', icon: Armchair },
   { name: 'Info', href: '/info', icon: InfoIcon },
 ]
 

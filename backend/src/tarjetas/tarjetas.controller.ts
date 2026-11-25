@@ -91,8 +91,8 @@ export class TarjetasController {
 
   @Post(':cardUid/cargar')
   @Roles('admin', 'caja')
-  cargarSaldo(@Param('cardUid') cardUid: string, @Body() dto: CargarSaldoDto) {
-    return this.tarjetasService.cargarSaldo(cardUid, dto);
+  cargarSaldo(@Param('cardUid') cardUid: string, @Body() dto: CargarSaldoDto, @CurrentUser() user: AuthUser) {
+    return this.tarjetasService.cargarSaldo(cardUid, dto, user.id);
   }
 
   @Get(':cardUid/movimientos')

@@ -8,9 +8,6 @@ import Carga from "./pages/carga";
 import CargaResultado from "./pages/carga-resultado";
 import Escanear from "./pages/escanear";
 import Control from "./pages/control";
-import LoginAdmin from "./pages/loginAdmin";
-import LoginCaja from "./pages/loginCaja";
-import LoginSeguridad from "./pages/loginSeguridad";
 import AuthGoogleCallback from "./pages/auth-google-callback";
 
 function App() {
@@ -39,9 +36,6 @@ function App() {
         <Route path="/carga/resultado" element={<CargaResultado />} />
         <Route path="/escaneartarjeta" element={<Escanear />} />
         <Route path="/control" element={<Control />} />
-        <Route path="/loginadmin" element={<LoginAdmin />} />
-        <Route path="/logincaja" element={<LoginCaja />} />
-        <Route path="/loginseguridad" element={<LoginSeguridad />} />
         <Route path="/auth/google/callback" element={<AuthGoogleCallback />} />
       </Routes>
     </>
