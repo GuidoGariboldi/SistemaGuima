@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { useEffect, useRef, useState } from 'react'
+import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Calendar, Clock, MapPin, Music, Filter } from 'lucide-react'
 
@@ -80,7 +80,159 @@ const events = [
   },
 ]
 
+type EventItem = (typeof events)[number]
+
 const categories = ['Todos', 'La Bastarda', 'Guanaco']
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 767px)')
+    const update = () => setIsMobile(query.matches)
+    update()
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  }, [])
+
+  return isMobile
+}
+
+interface EventCardProps {
+  event: EventItem
+  index: number
+  scrollRef: React.RefObject<HTMLDivElement | null>
+  isMobile: boolean
+}
+
+function EventCard({ event, index, scrollRef, isMobile }: EventCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null)
+
+  // 0 = la tarjeta entra por la derecha, 0.5 = centrada, 1 = sale por la izquierda
+  const { scrollXProgress } = useScroll({
+    target: cardRef,
+    container: scrollRef,
+    axis: 'x',
+    offset: ['start end', 'end start'],
+  })
+
+  const scale = useTransform(scrollXProgress, [0, 0.5, 1], [0.88, 1, 0.88])
+  const opacity = useTransform(scrollXProgress, [0, 0.5, 1], [0.45, 1, 0.45])
+  const imageX = useTransform(scrollXProgress, [0, 1], ['10%', '-10%'])
+  const contentY = useTransform(scrollXProgress, [0, 0.5, 1], [12, 0, 12])
+
+  return (
+    <motion.div
+      ref={cardRef}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: isMobile ? 0 : index * 0.1 }}
+      className="w-[80vw] max-w-sm shrink-0 snap-center md:w-auto md:max-w-none md:shrink"
+    >
+      <motion.div
+        style={isMobile ? { scale, opacity } : undefined}
+        className="h-full"
+      >
+        <div className="group relative h-full glass rounded-2xl overflow-hidden card-3d">
+          {/* Image */}
+          <div className="relative h-48 overflow-hidden">
+            <motion.img
+              src={event.image}
+              alt={event.name}
+              style={isMobile ? { x: imageX } : undefined}
+              className="w-full h-full object-cover scale-125 transition-transform duration-500 md:scale-100 md:group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
+            {event.featured && (
+              <span className="absolute top-4 right-4 px-3 py-1 bg-primary text-xs font-bold rounded-full">
+                DESTACADO
+              </span>
+            )}
+            <span className="absolute top-4 left-4 px-3 py-1 glass text-xs font-medium rounded-full">
+              {event.category} · {event.age}
+            </span>
+          </div>
+
+          {/* Content */}
+          <motion.div
+            style={isMobile ? { y: contentY } : undefined}
+            className="p-5 text-center sm:p-6"
+          >
+            <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">
+              {event.name}
+            </h3>
+            <div className="flex items-center gap-2 text-primary mb-4">
+              <Music className="h-4 w-4" />
+              <span className="text-sm font-medium">{event.dj}</span>
+            </div>
+
+            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-6">
+              <div className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                {event.date}
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                {event.time}
+              </div>
+            </div>
+
+            <div className="mt-2 text-sm font-medium text-primary">Entrada General disponible</div>
+          </motion.div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+function EventsCarousel({ items }: { items: EventItem[] }) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const isMobile = useIsMobile()
+  const [active, setActive] = useState(0)
+
+  const { scrollXProgress } = useScroll({ container: scrollRef })
+
+  useMotionValueEvent(scrollXProgress, 'change', (value) => {
+    if (items.length > 1 && Number.isFinite(value)) {
+      setActive(Math.round(value * (items.length - 1)))
+    }
+  })
+
+  return (
+    <>
+      {/* Mobile: horizontal scroll row, cards centered. md+: grid */}
+      <div
+        ref={scrollRef}
+        className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-[max(10vw,calc((100vw_-_24rem)/2))] pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:snap-none md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-3"
+      >
+        {items.map((event, index) => (
+          <EventCard
+            key={event.id}
+            event={event}
+            index={index}
+            scrollRef={scrollRef}
+            isMobile={isMobile}
+          />
+        ))}
+      </div>
+
+      {/* Position dots (mobile only) */}
+      {items.length > 1 && (
+        <div className="mt-2 flex justify-center gap-2 md:hidden" aria-hidden="true">
+          {items.map((event, index) => (
+            <span
+              key={event.id}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                index === active ? 'w-6 bg-primary' : 'w-1.5 bg-white/25'
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </>
+  )
+}
 
 export function EventsSection() {
   const [activeCategory, setActiveCategory] = useState('Todos')
@@ -134,61 +286,8 @@ export function EventsSection() {
           ))}
         </motion.div>
 
-        {/* Events Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map((event, index) => (
-            <motion.div
-              key={event.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="group relative glass rounded-2xl overflow-hidden card-3d"
-            >
-              {/* Image */}
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src={event.image}
-                  alt={event.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
-                {event.featured && (
-                  <span className="absolute top-4 right-4 px-3 py-1 bg-primary text-xs font-bold rounded-full">
-                    DESTACADO
-                  </span>
-                )}
-                <span className="absolute top-4 left-4 px-3 py-1 glass text-xs font-medium rounded-full">
-                  {event.category} · {event.age}
-                </span>
-              </div>
-
-              {/* Content */}
-              <div className="p-5 text-center sm:p-6">
-                <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">
-                  {event.name}
-                </h3>
-                <div className="flex items-center gap-2 text-primary mb-4">
-                  <Music className="h-4 w-4" />
-                  <span className="text-sm font-medium">{event.dj}</span>
-                </div>
-                
-                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-6">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    {event.date}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    {event.time}
-                  </div>
-                </div>
-
-                <div className="mt-2 text-sm font-medium text-primary">Entrada General disponible</div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        {/* Events (se vuelve a montar al cambiar de categoría para reiniciar el scroll) */}
+        <EventsCarousel key={activeCategory} items={filteredEvents} />
 
         {/* CTA */}
         <motion.div
